@@ -97782,8 +97782,8 @@ A.pH.prototype={
 ao(){return new A.TT(new A.t2(B.mP,$.an()))}}
 A.TT.prototype={
 ka(a){return this.anF(a)},
-anF(b1){var s=0,r=A.A(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0
-var $async$ka=A.B(function(b2,b3){if(b2===1){o.push(b3)
+anF(b2){var s=0,r=A.A(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1
+var $async$ka=A.B(function(b3,b4){if(b3===1){o.push(b4)
 s=p}for(;;)switch(s){case 0:a9=m.c
 a9.toString
 A.aKh(a9).ix()
@@ -97792,7 +97792,7 @@ break
 case 3:a0=m.c
 if(a0==null){s=1
 break}s=5
-return A.o(A.lM(a0).q5("/allergen_report",b1,t.X),$async$ka)
+return A.o(A.lM(a0).q5("/allergen_report",b2,t.X),$async$ka)
 case 5:if(m.c!=null)m.ad(new A.aqL(m))
 s=1
 break
@@ -97800,59 +97800,71 @@ case 4:p=7
 a9=$.k3().b
 a9===$&&A.a()
 l=a9
-s=10
-return A.o(A.lK(A.b([l.Lv("products").Ov().Co("jan_code",b1).Co("is_approved",!0).a1k(),l.Lv("allergen_corrections").Ov().Co("jan_code",b1).Co("is_approved",!0).a1k()],t.n9),t.nA),$async$ka)
-case 10:k=b3
-if(m.c==null){n=[1]
-s=8
-break}j=J.cl(k,0)
-i=J.cl(k,1)
-if(i!=null){a9=i.h(0,"allergens")
-if(a9==null)a9=[]
-a3=A.eS(a9,!0,t.N)}else a3=null
-h=a3
-s=j!=null?11:12
+k=null
+j=null
+p=11
+s=14
+return A.o(A.lK(A.b([l.Lv("products").Ov().Co("jan_code",b2).Co("is_approved",!0).a1k(),l.Lv("allergen_corrections").Ov().Co("jan_code",b2).Co("is_approved",!0).a1k()],t.n9),t.nA),$async$ka)
+case 14:i=b4
+k=J.cl(i,0)
+j=J.cl(i,1)
+p=7
+s=13
 break
-case 11:a0=j.h(0,"jan_code")
-a9=j.h(0,"name_jp")
+case 11:p=10
+b0=o.pop()
+s=13
+break
+case 10:s=7
+break
+case 13:if(m.c==null){n=[1]
+s=8
+break}if(j!=null){a9=j.h(0,"allergens")
+if(a9==null)a9=[]
+a4=A.eS(a9,!0,t.N)}else a4=null
+h=a4
+s=k!=null?15:16
+break
+case 15:a0=k.h(0,"jan_code")
+a9=k.h(0,"name_jp")
 if(a9==null)a9=""
-a4=j.h(0,"name_en")
-if(a4==null)a4=""
-a5=j.h(0,"image_url")
+a5=k.h(0,"name_en")
 if(a5==null)a5=""
-a6=h
-if(a6==null){a6=j.h(0,"allergens")
-if(a6==null)a6=[]
-a6=A.eS(a6,!0,t.N)}g=A.af(["janCode",a0,"name_jp",a9,"name_en",a4,"image_front",a5,"ingredients",a6],t.N,t.z)
+a6=k.h(0,"image_url")
+if(a6==null)a6=""
+a7=h
+if(a7==null){a7=k.h(0,"allergens")
+if(a7==null)a7=[]
+a7=A.eS(a7,!0,t.N)}g=A.af(["janCode",a0,"name_jp",a9,"name_en",a5,"image_front",a6,"ingredients",a7],t.N,t.z)
 if(m.e===B.eg)J.ez(g,"_autoVerify",!0)
 a0=m.c
 a0.toString
-s=13
+s=17
 return A.o(A.lM(a0).q5("/product_detail",g,t.X),$async$ka)
-case 13:n=[1]
+case 17:n=[1]
 s=8
 break
-case 12:f=A.cs(u.v+b1+".json",0,null)
-s=14
+case 16:f=A.cs(u.v+b2+".json",0,null)
+s=18
 return A.o(A.aHr(f,null).u7(B.hN),$async$ka)
-case 14:e=b3
-s=e.b===200?15:16
+case 18:e=b4
+s=e.b===200?19:20
 break
-case 15:a9=e
-a4=t.a
-d=a4.a(B.W.l6(A.iq(A.ip(a9.e)).c1(a9.w),null))
-s=J.c(J.cl(d,"status"),1)&&J.cl(d,"product")!=null?17:18
+case 19:a9=e
+a5=t.a
+d=a5.a(B.W.l6(A.iq(A.ip(a9.e)).c1(a9.w),null))
+s=J.c(J.cl(d,"status"),1)&&J.cl(d,"product")!=null?21:22
 break
-case 17:c=a4.a(J.cl(d,"product"))
+case 21:c=a5.a(J.cl(d,"product"))
 a9=J.cl(c,"ingredients_text_ja")
 a9=a9==null?null:J.bB(a9)
 if(a9==null){a9=J.cl(c,"ingredients_text")
 a9=a9==null?null:J.bB(a9)
-a7=a9}else a7=a9
-b=a7==null?"":a7
+a8=a9}else a8=a9
+b=a8==null?"":a8
 a=A.hM(b,"\u3001",",")
 a0=A.q(t.N,t.z)
-J.ez(a0,"janCode",b1)
+J.ez(a0,"janCode",b2)
 a9=J.cl(c,"product_name_ja")
 a9=a9==null?null:J.bB(a9)
 if(a9==null){a9=J.cl(c,"product_name")
@@ -97878,22 +97890,22 @@ break}a0=a0.ak(t.Pu).f
 a0.yF(A.RT(null,null,null,null,null,B.O,null,A.bx(J.c($.dQ().a,"en")?"Loaded from global database.":"\u5916\u90e8\u30c7\u30fc\u30bf\u304b\u3089\u53d6\u5f97\u3057\u307e\u3057\u305f\u3002",null,null,null,null,null,null),null,B.hQ,null,null,null,null,null,null,null,null,null,null))
 a0=m.c
 a0.toString
-s=19
+s=23
 return A.o(A.lM(a0).q5("/product_detail",a1,t.X),$async$ka)
-case 19:n=[1]
+case 23:n=[1]
 s=8
 break
-case 18:case 16:if(m.c==null){n=[1]
+case 22:case 20:if(m.c==null){n=[1]
 s=8
 break}m.AA(J.c($.dQ().a,"en")?"Not in database. Scanning package label...":"\u30c7\u30fc\u30bf\u30d9\u30fc\u30b9\u306b\u3042\u308a\u307e\u305b\u3093\u3002\u30e9\u30d9\u30eb\u3092\u30b9\u30ad\u30e3\u30f3\u3057\u307e\u3059...")
-s=20
-return A.o(m.IB(b1),$async$ka)
-case 20:n.push(9)
+s=24
+return A.o(m.IB(b2),$async$ka)
+case 24:n.push(9)
 s=8
 break
 case 7:p=6
-b0=o.pop()
-a0=A.U(b0)
+b1=o.pop()
+a0=A.U(b1)
 if(a0 instanceof A.Fe)m.AA(J.c($.dQ().a,"en")?"Connection timeout. Please check your network.":"\u901a\u4fe1\u304c\u30bf\u30a4\u30e0\u30a2\u30a6\u30c8\u3057\u307e\u3057\u305f\u3002")
 else{a2=a0
 m.AA(J.bB(a2))
