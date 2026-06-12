@@ -39,25 +39,30 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     try {
       // products と allergen_corrections を並列取得
       final supabase = Supabase.instance.client;
-      final results = await Future.wait<Map<String, dynamic>?>([
-        supabase
-            .from('products')
-            .select()
-            .eq('jan_code', janCode)
-            .eq('is_approved', true)
-            .maybeSingle(),
-        supabase
-            .from('allergen_corrections')
-            .select()
-            .eq('jan_code', janCode)
-            .eq('is_approved', true)
-            .maybeSingle(),
-      ]);
+      Map<String, dynamic>? productRow;
+      Map<String, dynamic>? correctionRow;
+      try {
+        final results = await Future.wait<Map<String, dynamic>?>([
+          supabase
+              .from('products')
+              .select()
+              .eq('jan_code', janCode)
+              .eq('is_approved', true)
+              .maybeSingle(),
+          supabase
+              .from('allergen_corrections')
+              .select()
+              .eq('jan_code', janCode)
+              .eq('is_approved', true)
+              .maybeSingle(),
+        ]);
+        productRow = results[0];
+        correctionRow = results[1];
+      } catch (_) {
+        // Supabase 接続失敗時は OFA にフォールバック
+      }
 
       if (!mounted) return;
-
-      final productRow = results[0];
-      final correctionRow = results[1];
 
       // 承認済み訂正データがあればアレルゲンリストを上書き
       final List<String>? correctedAllergens = correctionRow != null
