@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../theme_settings.dart';
-import '../services/ocr_service.dart';
+import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
 
 // 🌟変更：StatefulWidgetに進化させました！
 class ProductDetailScreen extends StatefulWidget {
@@ -20,7 +20,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _isOcrRunning = false;
 
   Future<void> _verifyWithOcr() async {
-    if (kIsWeb) return;
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: ImageSource.camera,
@@ -30,7 +29,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     setState(() => _isOcrRunning = true);
     try {
-      final result = await extractAllergensFromImage(photo.path);
+      OcrResult result;
+      if (kIsWeb) {
+        final bytes = await photo.readAsBytes();
+        result = await extractAllergensFromImageBytes(bytes);
+      } else {
+        result = await extractAllergensFromImage(photo.path);
+      }
       if (mounted) setState(() => _ocrResult = result);
     } catch (e) {
       if (mounted) {
@@ -457,8 +462,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 style: const TextStyle(color: Colors.grey),
                               ),
                               const SizedBox(height: 12),
-                              if (!kIsWeb &&
-                                  widget.product['_source'] != 'ocr') ...[
+                              if (widget.product['_source'] != 'ocr') ...[
                                 ElevatedButton.icon(
                                   onPressed:
                                       _isOcrRunning ? null : _verifyWithOcr,
@@ -498,17 +502,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ] else if (kIsWeb) ...[
-                                Text(
-                                  t(
-                                    'Use the mobile app to scan the package label.',
-                                    'モバイルアプリでラベルをスキャンして確認できます。',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue.shade700,
                                   ),
                                 ),
                               ],
@@ -582,8 +575,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 );
               },
             ),
-            if (!kIsWeb &&
-                widget.product['_source'] != 'ocr' &&
+            if (widget.product['_source'] != 'ocr' &&
                 ingredients.isNotEmpty) ...[
               const SizedBox(height: 8),
               OutlinedButton.icon(

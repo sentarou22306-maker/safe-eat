@@ -9,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../theme_settings.dart';
-import '../services/ocr_service.dart';
+import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
 
 enum ScanMode { fast, accurate, register }
 
@@ -157,10 +157,6 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   }
 
   Future<void> _scanWithOcr(String janCode) async {
-    if (kIsWeb) {
-      _showSnackBar(t('Camera not available on web.', 'ウェブではカメラを使えません。'));
-      return;
-    }
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: ImageSource.camera,
@@ -170,7 +166,13 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
 
     _showSnackBar(t('Reading text from image...', '画像からテキストを読み取り中...'));
     try {
-      final result = await extractAllergensFromImage(photo.path);
+      OcrResult result;
+      if (kIsWeb) {
+        final bytes = await photo.readAsBytes();
+        result = await extractAllergensFromImageBytes(bytes);
+      } else {
+        result = await extractAllergensFromImage(photo.path);
+      }
       if (!mounted) return;
       await context.push('/product_detail', extra: {
         'janCode': janCode,
