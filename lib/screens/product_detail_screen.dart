@@ -48,12 +48,90 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   List<Widget> _buildOcrVerificationCard(List<String> dbIngredients) {
-    // DBアレルゲン：辞書キーがingredients内（部分一致含む）に現れるもの
+    final ocrAllergens = _ocrResult!.foundAllergens;
+
+    // DBにデータがない場合：OCR発見結果のみ表示
+    if (dbIngredients.isEmpty) {
+      return [
+        const SizedBox(height: 8),
+        Card(
+          color: ocrAllergens.isEmpty
+              ? Colors.green.shade50
+              : Colors.blue.shade50,
+          elevation: 3,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      ocrAllergens.isEmpty
+                          ? Icons.check_circle_rounded
+                          : Icons.document_scanner_rounded,
+                      color: ocrAllergens.isEmpty
+                          ? Colors.green
+                          : Colors.blue.shade700,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        ocrAllergens.isEmpty
+                            ? t(
+                                'No allergens detected on label.',
+                                'ラベルからアレルゲンは検出されませんでした。',
+                              )
+                            : t(
+                                'Allergens found on label:',
+                                'ラベルから検出されたアレルゲン:',
+                              ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: ocrAllergens.isEmpty
+                              ? Colors.green.shade800
+                              : Colors.blue.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (ocrAllergens.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: ocrAllergens.map((a) {
+                      final info = allergenDictionary[a];
+                      return Chip(
+                        label: Text(
+                            '${info?['emoji'] ?? '⚠️'} $a (${info?['en'] ?? a})'),
+                        backgroundColor: Colors.blue.shade100,
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 6),
+                Text(
+                  t(
+                    '⚠️ OCR may not detect all text accurately. Always check the actual label.',
+                    '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。必ず実際のラベルをご確認ください。',
+                  ),
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ];
+    }
+
+    // DBにデータがある場合：照合結果を表示
     final dbAllergens = allergenDictionary.keys
         .where((key) => dbIngredients.any((i) => i.contains(key)))
         .toSet();
-    final ocrAllergens = _ocrResult!.foundAllergens;
-
     final onlyInOcr = ocrAllergens.difference(dbAllergens);
     final onlyInDb = dbAllergens.difference(ocrAllergens);
     final isConsistent = onlyInOcr.isEmpty && onlyInDb.isEmpty;
@@ -370,11 +448,71 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ],
                             ),
                             const Divider(height: 24, thickness: 1),
-                            if (ingredients.isEmpty)
-                              const Text(
-                                '登録されている情報はありません / No data available',
-                              )
-                            else
+                            if (ingredients.isEmpty) ...[
+                              Text(
+                                t(
+                                  'No allergen data registered for this product.',
+                                  'この商品のアレルゲン情報はまだ登録されていません。',
+                                ),
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 12),
+                              if (!kIsWeb &&
+                                  widget.product['_source'] != 'ocr') ...[
+                                ElevatedButton.icon(
+                                  onPressed:
+                                      _isOcrRunning ? null : _verifyWithOcr,
+                                  icon: _isOcrRunning
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.document_scanner_outlined),
+                                  label: Text(
+                                    t(
+                                      'Scan label for allergen info',
+                                      'ラベルをスキャンしてアレルゲンを確認する',
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber.shade700,
+                                    foregroundColor: Colors.white,
+                                    minimumSize:
+                                        const Size(double.infinity, 44),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  t(
+                                    '⚠️ OCR results are for reference only.',
+                                    '⚠️ OCR読み取り結果は参考情報です。',
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ] else if (kIsWeb) ...[
+                                Text(
+                                  t(
+                                    'Use the mobile app to scan the package label.',
+                                    'モバイルアプリでラベルをスキャンして確認できます。',
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ] else
                               Wrap(
                                 spacing: 8.0,
                                 runSpacing: 12.0,
