@@ -140,7 +140,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     } on SocketException {
       _showSnackBar(t('No internet connection.', 'ネットワークに接続できません。'));
     } catch (e) {
-      _showSnackBar(t('An unexpected error occurred.', '予期せぬエラーが発生しました。'));
+      _showSnackBar(e.toString());
       debugPrint('Error: $e');
     } finally {
       if (mounted) {
