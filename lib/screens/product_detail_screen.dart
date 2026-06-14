@@ -52,6 +52,117 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+  List<Widget> _buildCrossContaminationCard() {
+    final allergens = _ocrResult?.crossContaminationAllergens ?? {};
+    if (allergens.isEmpty) return [];
+    return [
+      const SizedBox(height: 8),
+      Card(
+        color: Colors.orange.shade50,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.factory_outlined, color: Colors.orange.shade700),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      t(
+                        'Made in shared facility with:',
+                        '同じ製造環境で以下を扱っています:',
+                      ),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: allergens.map((a) {
+                  final info = allergenDictionary[a];
+                  return Chip(
+                    label: Text(
+                      '${info?['emoji'] ?? '⚠️'} $a',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                    backgroundColor: Colors.orange.shade100,
+                    side: BorderSide(color: Colors.orange.shade300),
+                    padding: EdgeInsets.zero,
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                t(
+                  '⚠️ Trace amounts may be present due to shared manufacturing.',
+                  '⚠️ 製造工程上、微量混入の可能性があります。',
+                ),
+                style: TextStyle(fontSize: 11, color: Colors.orange.shade700),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildVegetableOilCard() {
+    if (_ocrResult?.hasUnspecifiedVegetableOil != true) return [];
+    return [
+      const SizedBox(height: 8),
+      Card(
+        color: Colors.yellow.shade50,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('🛢️', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t('Vegetable oil detected', '植物油脂が含まれています'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      t(
+                        'The label lists "vegetable oil" without specifying the source. It may contain soy, rapeseed, sesame, or other allergens.',
+                        '「植物油脂」と記載されていますが原料が特定されていません。大豆・菜種・ごまなどのアレルゲンを含む可能性があります。',
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.yellow.shade900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
   List<Widget> _buildOcrVerificationCard(List<String> dbIngredients) {
     final ocrAllergens = _ocrResult!.foundAllergens;
 
@@ -603,7 +714,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ],
-            if (_ocrResult != null) ..._buildOcrVerificationCard(ingredients),
+            if (_ocrResult != null) ...[
+      ..._buildOcrVerificationCard(ingredients),
+      ..._buildCrossContaminationCard(),
+      ..._buildVegetableOilCard(),
+    ],
             const SizedBox(height: 16),
             Card(
               elevation: 2,

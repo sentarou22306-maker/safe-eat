@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 // ---------------------------------------------------------
 // アレルゲン辞書（全画面で共有）
 // ---------------------------------------------------------
+// 日本 特定原材料（義務8品目）＋ 準ずるもの21品目 ＋ EU・米国追加分
 const Map<String, Map<String, String>> allergenDictionary = {
+  // ── 日本 義務表示 8品目 ──
   '卵': {'en': 'Egg', 'emoji': '🥚'},
   '乳成分': {'en': 'Milk', 'emoji': '🥛'},
   '小麦': {'en': 'Wheat', 'emoji': '🌾'},
@@ -13,15 +15,63 @@ const Map<String, Map<String, String>> allergenDictionary = {
   '落花生': {'en': 'Peanut', 'emoji': '🥜'},
   'えび': {'en': 'Shrimp', 'emoji': '🦐'},
   'かに': {'en': 'Crab', 'emoji': '🦀'},
-  '大豆': {'en': 'Soybean', 'emoji': '🌱'},
-  '豚肉': {'en': 'Pork', 'emoji': '🐷'},
+  'くるみ': {'en': 'Walnut', 'emoji': '🌰'},
+  // ── 日本 推奨表示 21品目 ──
+  'アーモンド': {'en': 'Almond', 'emoji': '🌰'},
+  'あわび': {'en': 'Abalone', 'emoji': '🐚'},
+  'いか': {'en': 'Squid', 'emoji': '🦑'},
+  'いくら': {'en': 'Salmon Roe', 'emoji': '🟠'},
+  'オレンジ': {'en': 'Orange', 'emoji': '🍊'},
+  'カシューナッツ': {'en': 'Cashew', 'emoji': '🌰'},
+  'キウイフルーツ': {'en': 'Kiwi', 'emoji': '🥝'},
   '牛肉': {'en': 'Beef', 'emoji': '🐮'},
-  '鶏肉': {'en': 'Chicken', 'emoji': '🐔'},
   'ごま': {'en': 'Sesame', 'emoji': '🌿'},
   'さけ': {'en': 'Salmon', 'emoji': '🐟'},
-  '油': {'en': 'Oil', 'emoji': '🛢️'},
+  'さば': {'en': 'Mackerel', 'emoji': '🐡'},
+  '大豆': {'en': 'Soybean', 'emoji': '🌱'},
+  '鶏肉': {'en': 'Chicken', 'emoji': '🐔'},
+  'バナナ': {'en': 'Banana', 'emoji': '🍌'},
+  '豚肉': {'en': 'Pork', 'emoji': '🐷'},
+  'まつたけ': {'en': 'Matsutake', 'emoji': '🍄'},
+  'もも': {'en': 'Peach', 'emoji': '🍑'},
+  'やまいも': {'en': 'Yam', 'emoji': '🍠'},
+  'りんご': {'en': 'Apple', 'emoji': '🍎'},
+  'ゼラチン': {'en': 'Gelatin', 'emoji': '🧊'},
+  'マカダミアナッツ': {'en': 'Macadamia', 'emoji': '🌰'},
+  // ── EU 追加 ──
+  'セロリ': {'en': 'Celery', 'emoji': '🥬'},
+  'からし': {'en': 'Mustard', 'emoji': '🌿'},
+  '亜硫酸塩': {'en': 'Sulphites', 'emoji': '🧪'},
+  'ルパン': {'en': 'Lupin', 'emoji': '🌸'},
+  // ── その他・共通 ──
+  '魚類': {'en': 'Fish (general)', 'emoji': '🐟'},
   'とうもろこし': {'en': 'Corn', 'emoji': '🌽'},
+  '植物油脂': {'en': 'Vegetable Oil (source unspecified)', 'emoji': '🛢️'},
 };
+
+// 植物油関連キーワード（原料が特定できない可能性があるもの）
+const List<String> vegetableOilKeywords = [
+  '植物油脂',
+  '植物油',
+  '加工油脂',
+];
+
+// 同一製造工程・コンタミネーション検出フレーズ
+const List<String> crossContaminationPhrases = [
+  '同じ製造ライン',
+  '同じ設備',
+  '共通の設備',
+  '同一の設備',
+  '同一工場',
+  '同じ工場',
+  '製造工場では',
+  '本製品製造工場では',
+  'を含む製品を製造',
+  'を含む食品と共通',
+  'を使用した設備',
+  '微量混入',
+  'コンタミ',
+];
 
 // ---------------------------------------------------------
 // 🌟 司令塔0：言語設定 (NEW!)
@@ -104,17 +154,26 @@ Widget buildGlobalSettingsButton(BuildContext context) {
     onPressed: () {
       showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (context) => const SettingsBottomSheet(),
+        builder: (context) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) =>
+              SettingsBottomSheet(scrollController: scrollController),
+        ),
       );
     },
   );
 }
 
 class SettingsBottomSheet extends StatefulWidget {
-  const SettingsBottomSheet({super.key});
+  final ScrollController? scrollController;
+  const SettingsBottomSheet({super.key, this.scrollController});
 
   @override
   State<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
@@ -123,12 +182,23 @@ class SettingsBottomSheet extends StatefulWidget {
 class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
+      controller: widget.scrollController,
       padding: const EdgeInsets.all(24.0),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
           Text(
             t('My Allergens / マイアレルゲン', 'マイアレルゲン / My Allergens'),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -263,7 +333,7 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
               _colorButton(Colors.black87),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 48),
         ],
       ),
     );

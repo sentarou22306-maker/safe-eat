@@ -7,8 +7,36 @@ import '../theme_settings.dart';
 class OcrResult {
   final String rawText;
   final Set<String> foundAllergens;
-  const OcrResult({required this.rawText, required this.foundAllergens});
+  final Set<String> crossContaminationAllergens;
+  final bool hasUnspecifiedVegetableOil;
+
+  const OcrResult({
+    required this.rawText,
+    required this.foundAllergens,
+    this.crossContaminationAllergens = const {},
+    this.hasUnspecifiedVegetableOil = false,
+  });
 }
+
+Set<String> _extractAllergens(String text) =>
+    allergenDictionary.keys.where((jp) => text.contains(jp)).toSet();
+
+Set<String> _extractCrossContamination(String text) {
+  final result = <String>{};
+  final sentences = text.split(RegExp(r'[。\n]'));
+  for (final sentence in sentences) {
+    final hasCross = crossContaminationPhrases.any(sentence.contains);
+    if (hasCross) {
+      for (final jp in allergenDictionary.keys) {
+        if (sentence.contains(jp)) result.add(jp);
+      }
+    }
+  }
+  return result;
+}
+
+bool _detectUnspecifiedOil(String text) =>
+    vegetableOilKeywords.any(text.contains);
 
 /// モバイル専用：ML Kit でネイティブ OCR
 Future<OcrResult> extractAllergensFromImage(String imagePath) async {
@@ -17,10 +45,12 @@ Future<OcrResult> extractAllergensFromImage(String imagePath) async {
     final inputImage = InputImage.fromFilePath(imagePath);
     final recognized = await recognizer.processImage(inputImage);
     final rawText = recognized.text;
-    final foundAllergens = allergenDictionary.keys
-        .where((jp) => rawText.contains(jp))
-        .toSet();
-    return OcrResult(rawText: rawText, foundAllergens: foundAllergens);
+    return OcrResult(
+      rawText: rawText,
+      foundAllergens: _extractAllergens(rawText),
+      crossContaminationAllergens: _extractCrossContamination(rawText),
+      hasUnspecifiedVegetableOil: _detectUnspecifiedOil(rawText),
+    );
   } finally {
     await recognizer.close();
   }
@@ -48,10 +78,12 @@ Future<OcrResult> extractAllergensFromImageBytes(Uint8List imageBytes) async {
       final parsedResults = data['ParsedResults'] as List?;
       if (parsedResults != null && parsedResults.isNotEmpty) {
         final rawText = parsedResults[0]['ParsedText']?.toString() ?? '';
-        final foundAllergens = allergenDictionary.keys
-            .where((jp) => rawText.contains(jp))
-            .toSet();
-        return OcrResult(rawText: rawText, foundAllergens: foundAllergens);
+        return OcrResult(
+          rawText: rawText,
+          foundAllergens: _extractAllergens(rawText),
+          crossContaminationAllergens: _extractCrossContamination(rawText),
+          hasUnspecifiedVegetableOil: _detectUnspecifiedOil(rawText),
+        );
       }
     }
   } catch (_) {}
