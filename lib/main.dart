@@ -7,6 +7,7 @@ import 'theme_settings.dart';
 import 'screens/barcode_scan_screen.dart';
 import 'screens/product_detail_screen.dart';
 import 'screens/allergen_report_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ void main() async {
   );
   await loadGlobalHistory();
   await loadUserAllergens();
+  await loadCustomAllergens();
   runApp(const MyApp());
 }
 
@@ -54,6 +56,11 @@ final GoRouter _router = GoRouter(
         final product = state.extra as Map<String, dynamic>? ?? {};
         return ProductDetailScreen(product: product);
       },
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );

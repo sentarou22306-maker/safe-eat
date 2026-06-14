@@ -22,11 +22,13 @@ class BarcodeScanScreen extends StatefulWidget {
 
 class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   bool isScanned = false;
+  bool _isLoading = false;
   ScanMode? _scanMode;
   final TextEditingController _janCodeController = TextEditingController();
 
   Future<void> _searchProduct(String janCode) async {
     FocusScope.of(context).unfocus();
+    setState(() => _isLoading = true);
 
     // 登録モード：DBを検索せずアレルゲン報告画面へ直行
     if (_scanMode == ScanMode.register) {
@@ -149,6 +151,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
       debugPrint('Error: $e');
     } finally {
       if (mounted) {
+        setState(() => _isLoading = false);
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) setState(() => isScanned = false);
         });
@@ -413,7 +416,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
               style: const TextStyle(fontSize: 18),
             ),
             actions: [
-              if (_scanMode != null) ...[
+              if (_scanMode != null)
                 GestureDetector(
                   onTap: () => setState(() {
                     _scanMode = null;
@@ -466,20 +469,6 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.bug_report,
-                    color: Colors.redAccent,
-                    size: 32,
-                  ),
-                  onPressed: () {
-                    if (!isScanned) {
-                      setState(() => isScanned = true);
-                      _searchProduct('4902443526917');
-                    }
-                  },
-                ),
-              ],
               buildGlobalSettingsButton(context),
             ],
           ),
@@ -499,6 +488,25 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                   }
                 },
               ),
+              if (_isLoading)
+                const Positioned.fill(
+                  child: ColoredBox(
+                    color: Color(0x99000000),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: Colors.white),
+                          SizedBox(height: 16),
+                          Text(
+                            'Searching... / 検索中...',
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 bottom: 40,
                 left: 16,

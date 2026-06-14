@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------
@@ -94,6 +95,7 @@ final ValueNotifier<Color> appThemeColor = ValueNotifier(Colors.green);
 // マイアレルゲンプロファイル
 // ---------------------------------------------------------
 final ValueNotifier<Set<String>> userAllergens = ValueNotifier({});
+final ValueNotifier<Set<String>> customAllergens = ValueNotifier({});
 
 Future<void> loadUserAllergens() async {
   final prefs = await SharedPreferences.getInstance();
@@ -101,10 +103,30 @@ Future<void> loadUserAllergens() async {
   userAllergens.value = saved.toSet();
 }
 
-Future<void> _saveUserAllergens(Set<String> allergens) async {
+Future<void> saveUserAllergens(Set<String> allergens) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setStringList('user_allergens', allergens.toList());
   userAllergens.value = Set.from(allergens);
+}
+
+Future<void> loadCustomAllergens() async {
+  final prefs = await SharedPreferences.getInstance();
+  final saved = prefs.getStringList('custom_allergens') ?? [];
+  customAllergens.value = saved.toSet();
+}
+
+Future<void> addCustomAllergen(String name) async {
+  final prefs = await SharedPreferences.getInstance();
+  final current = Set<String>.from(customAllergens.value)..add(name);
+  await prefs.setStringList('custom_allergens', current.toList());
+  customAllergens.value = current;
+}
+
+Future<void> removeCustomAllergen(String name) async {
+  final prefs = await SharedPreferences.getInstance();
+  final current = Set<String>.from(customAllergens.value)..remove(name);
+  await prefs.setStringList('custom_allergens', current.toList());
+  customAllergens.value = current;
 }
 
 // ---------------------------------------------------------
@@ -149,214 +171,8 @@ Future<void> saveToGlobalHistory(Map<String, dynamic> product) async {
 
 Widget buildGlobalSettingsButton(BuildContext context) {
   return IconButton(
-    icon: const Icon(Icons.language), // 🌐 アイコンを地球儀に変更！
+    icon: const Icon(Icons.settings),
     tooltip: t('Settings', '設定'),
-    onPressed: () {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder: (context) => DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.95,
-          builder: (context, scrollController) =>
-              SettingsBottomSheet(scrollController: scrollController),
-        ),
-      );
-    },
+    onPressed: () => context.push('/settings'),
   );
-}
-
-class SettingsBottomSheet extends StatefulWidget {
-  final ScrollController? scrollController;
-  const SettingsBottomSheet({super.key, this.scrollController});
-
-  @override
-  State<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
-}
-
-class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      controller: widget.scrollController,
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          Text(
-            t('My Allergens / マイアレルゲン', 'マイアレルゲン / My Allergens'),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            t(
-              'Select your allergens to get warnings on product pages.',
-              'アレルゲンを選ぶと、商品ページで自動警告が表示されます。',
-            ),
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 12),
-          ValueListenableBuilder<Set<String>>(
-            valueListenable: userAllergens,
-            builder: (context, selected, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: allergenDictionary.entries.map((entry) {
-                  final jp = entry.key;
-                  final emoji = entry.value['emoji']!;
-                  final isSelected = selected.contains(jp);
-                  return FilterChip(
-                    label: Text('$emoji $jp'),
-                    selected: isSelected,
-                    selectedColor: Colors.red.shade100,
-                    checkmarkColor: Colors.red,
-                    side: isSelected
-                        ? BorderSide(color: Colors.red.shade300)
-                        : null,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.red.shade800
-                          : Colors.black87,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onSelected: (val) {
-                      final newSet = Set<String>.from(selected);
-                      if (val) {
-                        newSet.add(jp);
-                      } else {
-                        newSet.remove(jp);
-                      }
-                      _saveUserAllergens(newSet);
-                    },
-                  );
-                }).toList(),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-          // 🌐 言語切り替えボタン (NEW!)
-          Text(
-            t('Language / 言語', '言語 / Language'),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    appLanguage.value = 'en';
-                    setState(() {});
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appLanguage.value == 'en'
-                        ? appThemeColor.value
-                        : Colors.grey.shade300,
-                    foregroundColor: appLanguage.value == 'en'
-                        ? Colors.white
-                        : Colors.black87,
-                  ),
-                  child: const Text('English'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    appLanguage.value = 'ja';
-                    setState(() {});
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appLanguage.value == 'ja'
-                        ? appThemeColor.value
-                        : Colors.grey.shade300,
-                    foregroundColor: appLanguage.value == 'ja'
-                        ? Colors.white
-                        : Colors.black87,
-                  ),
-                  child: const Text('日本語'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          Text(
-            t('Text Size / 文字サイズ', '文字サイズ / Text Size'),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Slider(
-            value: appTextScale.value,
-            min: 0.8,
-            max: 1.5,
-            divisions: 7,
-            label: 'x${appTextScale.value.toStringAsFixed(1)}',
-            activeColor: appThemeColor.value,
-            onChanged: (val) {
-              setState(() {});
-              appTextScale.value = val;
-            },
-          ),
-          const SizedBox(height: 16),
-          Text(
-            t('Theme Color / テーマカラー', 'テーマカラー / Theme Color'),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 16,
-            children: [
-              _colorButton(Colors.green),
-              _colorButton(Colors.blue),
-              _colorButton(Colors.orange),
-              _colorButton(Colors.purple),
-              _colorButton(Colors.pink),
-              _colorButton(Colors.black87),
-            ],
-          ),
-          const SizedBox(height: 48),
-        ],
-      ),
-    );
-  }
-
-  Widget _colorButton(Color color) {
-    final isSelected = appThemeColor.value == color;
-    return GestureDetector(
-      onTap: () {
-        setState(() {});
-        appThemeColor.value = color;
-      },
-      child: Container(
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? Colors.black45 : Colors.transparent,
-            width: 3,
-          ),
-        ),
-        child: CircleAvatar(backgroundColor: color, radius: 20),
-      ),
-    );
-  }
 }

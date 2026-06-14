@@ -343,8 +343,69 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Map<String, String> _translateIngredient(String jpIngredient) {
-    return allergenDictionary[jpIngredient] ??
-        {'en': jpIngredient, 'emoji': '⚠️'};
+    if (allergenDictionary.containsKey(jpIngredient)) {
+      return allergenDictionary[jpIngredient]!;
+    }
+    // OFA生テキストのサブ文字列マッチで辞書エントリを探す
+    for (final entry in allergenDictionary.entries) {
+      if (jpIngredient.contains(entry.key)) return entry.value;
+    }
+    return {'en': jpIngredient, 'emoji': '🔍'};
+  }
+
+  Widget _buildSafetyBanner(List<String> matched, bool hasAllergenProfile) {
+    if (!hasAllergenProfile) return const SizedBox.shrink();
+    final isDanger = matched.isNotEmpty;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDanger ? Colors.red.shade600 : Colors.green.shade600,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isDanger ? Icons.dangerous_rounded : Icons.check_circle_rounded,
+            color: Colors.white,
+            size: 32,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: isDanger
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t('⚠ DANGER  危険', '⚠ 危険  DANGER'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        matched.join('  '),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    t('✓ SAFE — No matched allergens', '✓ 安全 — 登録アレルゲンは含まれていません'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -393,6 +454,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            ValueListenableBuilder<Set<String>>(
+              valueListenable: userAllergens,
+              builder: (context, myAllergens, _) {
+                final allAllergens = {...myAllergens, ...customAllergens.value};
+                if (ingredients.isEmpty) return const SizedBox.shrink();
+                final matched = ingredients
+                    .where((e) => allAllergens.any((a) => e.contains(a)))
+                    .toList();
+                return Column(
+                  children: [
+                    _buildSafetyBanner(matched, allAllergens.isNotEmpty),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              },
+            ),
             if (widget.product['_source'] == 'ocr') ...[
               Container(
                 padding: const EdgeInsets.all(12),
@@ -486,7 +563,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               valueListenable: userAllergens,
               builder: (context, myAllergens, _) {
                 final matched = ingredients
-                    .where((e) => myAllergens.contains(e))
+                    .where((e) => myAllergens.any((a) => e.contains(a)))
                     .toList();
                 return Column(
                   children: [
@@ -626,8 +703,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   );
                                   final enName = translation['en']!;
                                   final emoji = translation['emoji']!;
-                                  final isMatch =
-                                      myAllergens.contains(jpIngredient);
+                                  final isMatch = myAllergens
+                                      .any((a) => jpIngredient.contains(a));
 
                                   return Container(
                                     padding: const EdgeInsets.symmetric(
