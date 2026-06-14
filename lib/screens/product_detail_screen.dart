@@ -569,8 +569,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ValueListenableBuilder<Set<String>>(
               valueListenable: userAllergens,
               builder: (context, myAllergens, _) {
+                final allMyAllergens = {...myAllergens, ...customAllergens.value};
                 final matched = ingredients
-                    .where((e) => myAllergens.any((a) => _matchesAllergen(e, a)))
+                    .where((e) => allMyAllergens.any((a) => _matchesAllergen(e, a)))
                     .toList();
                 return Column(
                   children: [
@@ -710,7 +711,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   );
                                   final enName = translation['en']!;
                                   final emoji = translation['emoji']!;
-                                  final isMatch = myAllergens
+                                  final isMatch = allMyAllergens
                                       .any((a) => _matchesAllergen(jpIngredient, a));
 
                                   return Container(
