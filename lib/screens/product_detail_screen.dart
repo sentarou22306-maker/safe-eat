@@ -342,6 +342,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ];
   }
 
+  bool _matchesAllergen(String ingredient, String allergenJp) {
+    final lower = ingredient.toLowerCase();
+    if (lower.contains(allergenJp.toLowerCase())) return true;
+    final en = allergenDictionary[allergenJp]?['en']?.toLowerCase() ?? '';
+    return en.isNotEmpty && lower.contains(en);
+  }
+
   Map<String, String> _translateIngredient(String jpIngredient) {
     if (allergenDictionary.containsKey(jpIngredient)) {
       return allergenDictionary[jpIngredient]!;
@@ -460,7 +467,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 final allAllergens = {...myAllergens, ...customAllergens.value};
                 if (ingredients.isEmpty) return const SizedBox.shrink();
                 final matched = ingredients
-                    .where((e) => allAllergens.any((a) => e.contains(a)))
+                    .where((e) => allAllergens.any((a) => _matchesAllergen(e, a)))
                     .toList();
                 return Column(
                   children: [
@@ -563,7 +570,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               valueListenable: userAllergens,
               builder: (context, myAllergens, _) {
                 final matched = ingredients
-                    .where((e) => myAllergens.any((a) => e.contains(a)))
+                    .where((e) => myAllergens.any((a) => _matchesAllergen(e, a)))
                     .toList();
                 return Column(
                   children: [
@@ -704,7 +711,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   final enName = translation['en']!;
                                   final emoji = translation['emoji']!;
                                   final isMatch = myAllergens
-                                      .any((a) => jpIngredient.contains(a));
+                                      .any((a) => _matchesAllergen(jpIngredient, a));
 
                                   return Container(
                                     padding: const EdgeInsets.symmetric(
