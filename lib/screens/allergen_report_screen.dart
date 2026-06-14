@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../theme_settings.dart';
@@ -20,6 +22,8 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
   bool _isSubmitting = false;
   bool _isLookingUp = false;
   String? _productName;
+  XFile? _pickedImage;
+  Uint8List? _pickedImageBytes;
 
   static const String _webhookUrl =
       'https://discord.com/api/webhooks/1511754386467192842/RBNxEnt3QCD000DP2KG9xLGUDu-eI5GMMvX5308HiR7145Iw-No2PNEawTbTCb6PAbeg';
@@ -30,6 +34,75 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
     _janCodeController = TextEditingController(text: widget.initialJanCode);
     if (widget.initialJanCode.isNotEmpty) {
       _lookupProductName(widget.initialJanCode);
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final photo = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1200,
+    );
+    if (photo == null) return;
+    final bytes = await photo.readAsBytes();
+    setState(() {
+      _pickedImage = photo;
+      _pickedImageBytes = bytes;
+    });
+  }
+
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(t('Take a photo', 'カメラで撮影')),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(t('Choose from gallery', 'ギャラリーから選択')),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<String?> _uploadImage(String janCode) async {
+    if (_pickedImageBytes == null) return null;
+    try {
+      final ext = _pickedImage?.name.split('.').last ?? 'jpg';
+      final fileName =
+          '${janCode}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+      await Supabase.instance.client.storage
+          .from('product-images')
+          .uploadBinary(
+            fileName,
+            _pickedImageBytes!,
+            fileOptions: FileOptions(contentType: 'image/$ext'),
+          );
+      return Supabase.instance.client.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+    } catch (e) {
+      debugPrint('Image upload error: $e');
+      return null;
     }
   }
 
@@ -58,39 +131,37 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
   Future<void> _submit() async {
     final janCode = _janCodeController.text.trim();
     if (janCode.isEmpty) {
-      _showSnackBar(
-        t('Please enter a barcode.', 'バーコードを入力してください。'),
-      );
+      _showSnackBar(t('Please enter a barcode.', 'バーコードを入力してください。'));
       return;
     }
     if (_selectedAllergens.isEmpty) {
       _showSnackBar(
-        t(
-          'Select at least one allergen.',
-          'アレルゲンを1つ以上選択してください。',
-        ),
+        t('Select at least one allergen.', 'アレルゲンを1つ以上選択してください。'),
       );
       return;
     }
 
     setState(() => _isSubmitting = true);
     try {
-      // jan_code が PK のため upsert で自然に重複回避
-      await Supabase.instance.client.from('allergen_corrections').upsert(
-        {
-          'jan_code': janCode,
-          'allergens': _selectedAllergens.toList(),
-          'note': _noteController.text.trim(),
-          'submitted_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
-          'is_approved': false,
-        },
-        onConflict: 'jan_code',
-      );
+      final imageUrl = await _uploadImage(janCode);
+
+      final reportData = <String, dynamic>{
+        'jan_code': janCode,
+        'allergens': _selectedAllergens.toList(),
+        'note': _noteController.text.trim(),
+        'submitted_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+        'is_approved': false,
+      };
+      if (imageUrl != null) reportData['image_url'] = imageUrl;
+
+      await Supabase.instance.client
+          .from('allergen_corrections')
+          .upsert(reportData, onConflict: 'jan_code');
 
       if (!mounted) return;
 
-      await _sendDiscordNotification(janCode);
+      await _sendDiscordNotification(janCode, imageUrl);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -103,15 +174,16 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
       );
       Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) {
-        _showSnackBar(t('Error: $e', 'エラー: $e'));
-      }
+      if (mounted) _showSnackBar(t('Error: $e', 'エラー: $e'));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  Future<void> _sendDiscordNotification(String janCode) async {
+  Future<void> _sendDiscordNotification(
+    String janCode,
+    String? imageUrl,
+  ) async {
     final allergenList = _selectedAllergens.join(', ');
     final note = _noteController.text.trim();
     final message = {
@@ -121,7 +193,8 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
           "${_productName != null ? '**商品名:** $_productName\n' : ''}"
           "**報告アレルゲン:** $allergenList\n"
           "${note.isNotEmpty ? '**備考:** $note\n' : ''}"
-          "\n👉 `allergen_corrections` コレクションで `isApproved: true` に変更してください。",
+          "${imageUrl != null ? '**写真:** $imageUrl\n' : ''}"
+          "\n👉 `allergen_corrections` テーブルで `is_approved: true` に変更してください。",
     };
     try {
       await http.post(
@@ -134,7 +207,9 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -271,6 +346,64 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                   ),
                   maxLines: 2,
                 ),
+
+                const SizedBox(height: 24),
+
+                // 写真セクション
+                Text(
+                  t('Photo (Optional)', '写真（任意）'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (_pickedImageBytes != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      _pickedImageBytes!,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () =>
+                        setState(() {
+                          _pickedImage = null;
+                          _pickedImageBytes = null;
+                        }),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    label: Text(
+                      t('Remove photo', '写真を削除'),
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ] else ...[
+                  OutlinedButton.icon(
+                    onPressed: _showImageSourceDialog,
+                    icon: const Icon(Icons.add_a_photo_outlined),
+                    label: Text(
+                      t('Add photo of package label', '商品ラベルの写真を追加'),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    t(
+                      'A photo helps admins verify the information.',
+                      '写真があると管理者が内容を確認しやすくなります。',
+                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
 
                 const SizedBox(height: 32),
 
