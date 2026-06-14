@@ -20,12 +20,16 @@ class OcrResult {
 
 Set<String> _extractAllergens(String text) {
   final lower = text.toLowerCase();
-  return allergenDictionary.entries
+  final found = allergenDictionary.entries
       .where((e) =>
           text.contains(e.key) ||
           lower.contains(e.value['en']!.toLowerCase()))
       .map((e) => e.key)
       .toSet();
+  for (final custom in customAllergens.value) {
+    if (lower.contains(custom.toLowerCase())) found.add(custom);
+  }
+  return found;
 }
 
 Set<String> _extractCrossContamination(String text) {
