@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,7 @@ late final GoRouter _router;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   await Supabase.initialize(
     url: 'https://nzzenffzsohmbnoscfvx.supabase.co',
     publishableKey: 'sb_publishable_sRZAzxUNJlsRHcWjxYT3Ew_m1iuEPLq',
