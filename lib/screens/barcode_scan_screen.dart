@@ -11,7 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import '../theme_settings.dart';
 import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
 
-enum ScanMode { fast, accurate, register }
+enum ScanMode { fast, accurate }
 
 class BarcodeScanScreen extends StatefulWidget {
   const BarcodeScanScreen({super.key});
@@ -23,20 +23,12 @@ class BarcodeScanScreen extends StatefulWidget {
 class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   bool isScanned = false;
   bool _isLoading = false;
-  ScanMode? _scanMode;
+  ScanMode _scanMode = ScanMode.fast;
   final TextEditingController _janCodeController = TextEditingController();
 
   Future<void> _searchProduct(String janCode) async {
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
-
-    // 登録モード：DBを検索せずアレルゲン報告画面へ直行
-    if (_scanMode == ScanMode.register) {
-      if (!mounted) return;
-      await context.push('/allergen_report', extra: janCode);
-      if (mounted) setState(() => isScanned = false);
-      return;
-    }
 
     try {
       // products と allergen_corrections を並列取得
@@ -194,202 +186,6 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     }
   }
 
-  Widget _buildModeSelectionBody() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              t('Choose Scan Mode', 'スキャンモードを選択'),
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              t(
-                'Select how you want to scan.',
-                '商品のスキャン方法を選んでください。',
-              ),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 40),
-            GestureDetector(
-              onTap: () => setState(() => _scanMode = ScanMode.fast),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.bolt_rounded,
-                          color: Colors.amber.shade800,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t('Fast Mode', '最速モード'),
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              t(
-                                'JAN code only. Auto-scans label if not found.',
-                                'JANコードのみ。未登録の場合は自動でラベルをスキャン。',
-                              ),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => setState(() => _scanMode = ScanMode.accurate),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.verified_user_rounded,
-                          color: Colors.teal,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t('Accurate Mode', '精度重視モード'),
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              t(
-                                'JAN code + label scan. Cross-verifies for higher reliability.',
-                                'JANコード＋ラベルをスキャン。照合して信頼性を高めます。',
-                              ),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => setState(() => _scanMode = ScanMode.register),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.edit_document,
-                          color: Colors.blue.shade700,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t('Registration Mode', '登録モード'),
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              t(
-                                'Scan barcode to report allergen info directly.',
-                                'バーコードをスキャンしてアレルゲン情報を直接報告。',
-                              ),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
@@ -403,9 +199,47 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     super.dispose();
   }
 
+  Widget _buildModeToggle() {
+    final isFast = _scanMode == ScanMode.fast;
+    return GestureDetector(
+      onTap: () => setState(() {
+        _scanMode = isFast ? ScanMode.accurate : ScanMode.fast;
+      }),
+      child: Container(
+        alignment: Alignment.center,
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isFast ? Colors.amber.shade700 : Colors.teal,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isFast ? Icons.bolt_rounded : Icons.verified_user_rounded,
+              size: 14,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              isFast ? t('Fast', '最速') : t('Accurate', '精度'),
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.swap_horiz, size: 14, color: Colors.white70),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 🌟 スキャン画面にも言語を監視するカメラを追加！
     return ValueListenableBuilder<String>(
       valueListenable: appLanguage,
       builder: (context, lang, _) {
@@ -416,65 +250,11 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
               style: const TextStyle(fontSize: 18),
             ),
             actions: [
-              if (_scanMode != null)
-                GestureDetector(
-                  onTap: () => setState(() {
-                    _scanMode = null;
-                    isScanned = false;
-                  }),
-                  child: Container(
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 4,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _scanMode == ScanMode.fast
-                          ? Colors.amber.shade700
-                          : _scanMode == ScanMode.accurate
-                              ? Colors.teal
-                              : Colors.blue.shade700,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _scanMode == ScanMode.fast
-                              ? Icons.bolt_rounded
-                              : _scanMode == ScanMode.accurate
-                                  ? Icons.verified_user_rounded
-                                  : Icons.edit_document,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _scanMode == ScanMode.fast
-                              ? t('Fast', '最速')
-                              : _scanMode == ScanMode.accurate
-                                  ? t('Accurate', '精度')
-                                  : t('Register', '登録'),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              _buildModeToggle(),
               buildGlobalSettingsButton(context),
             ],
           ),
-          body: _scanMode == null
-              ? _buildModeSelectionBody()
-              : Stack(
+          body: Stack(
                   children: [
               MobileScanner(
                 onDetect: (capture) {

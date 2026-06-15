@@ -8,6 +8,11 @@ import 'screens/barcode_scan_screen.dart';
 import 'screens/product_detail_screen.dart';
 import 'screens/allergen_report_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/onboarding_screen.dart';
+
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
+late final GoRouter _router;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,52 +23,57 @@ void main() async {
   await loadGlobalHistory();
   await loadUserAllergens();
   await loadCustomAllergens();
+
+  final prefs = await SharedPreferences.getInstance();
+  final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+
+  _router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: onboardingDone ? '/' : '/onboarding',
+    routes: [
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) {
+          return ScaffoldWithNavBar(child: child);
+        },
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+          GoRoute(
+            path: '/barcode_scan',
+            builder: (context, state) => const BarcodeScanScreen(),
+          ),
+          GoRoute(
+            path: '/allergen_report',
+            builder: (context, state) {
+              final janCode = state.extra as String? ?? '';
+              return AllergenReportScreen(initialJanCode: janCode);
+            },
+          ),
+        ],
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/product_detail',
+        builder: (context, state) {
+          final product = state.extra as Map<String, dynamic>? ?? {};
+          return ProductDetailScreen(product: product);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+    ],
+  );
+
   runApp(const MyApp());
 }
-
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _shellNavigatorKey =
-    GlobalKey<NavigatorState>();
-
-final GoRouter _router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: '/',
-  routes: [
-    ShellRoute(
-      navigatorKey: _shellNavigatorKey,
-      builder: (context, state, child) {
-        return ScaffoldWithNavBar(child: child);
-      },
-      routes: [
-        GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
-        GoRoute(
-          path: '/barcode_scan',
-          builder: (context, state) => const BarcodeScanScreen(),
-        ),
-        GoRoute(
-          path: '/allergen_report',
-          builder: (context, state) {
-            final janCode = state.extra as String? ?? '';
-            return AllergenReportScreen(initialJanCode: janCode);
-          },
-        ),
-      ],
-    ),
-    GoRoute(
-      parentNavigatorKey: _rootNavigatorKey,
-      path: '/product_detail',
-      builder: (context, state) {
-        final product = state.extra as Map<String, dynamic>? ?? {};
-        return ProductDetailScreen(product: product);
-      },
-    ),
-    GoRoute(
-      parentNavigatorKey: _rootNavigatorKey,
-      path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
-    ),
-  ],
-);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -170,46 +180,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFirstLaunch());
-  }
-
-  Future<void> _checkFirstLaunch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final shown = prefs.getBool('disclaimer_shown') ?? false;
-    if (!shown && mounted) {
-      await prefs.setBool('disclaimer_shown', true);
-      if (mounted) _showDisclaimerDialog();
-    }
-  }
-
-  void _showDisclaimerDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Disclaimer / 免責事項'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'The allergy information provided is for reference only and may not be 100% accurate or up to date. '
-            'Please ALWAYS check the actual product packaging before consumption.\n\n'
-            '提供されるアレルギー情報は参考用であり、正確性や最新性を保証しません。'
-            'お召し上がり前に必ず商品パッケージの表示をご確認ください。',
-            style: TextStyle(fontSize: 13),
-          ),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('I Agree / 同意する'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(

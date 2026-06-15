@@ -48,6 +48,7 @@ const Map<String, Map<String, String>> allergenDictionary = {
   '魚類': {'en': 'Fish (general)', 'emoji': '🐟'},
   'とうもろこし': {'en': 'Corn', 'emoji': '🌽'},
   '植物油脂': {'en': 'Vegetable Oil (source unspecified)', 'emoji': '🛢️'},
+  'はちみつ': {'en': 'Honey', 'emoji': '🍯'},
 };
 
 // 植物油関連キーワード（原料が特定できない可能性があるもの）
