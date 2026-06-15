@@ -152,6 +152,10 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   }
 
   Future<void> _scanWithOcr(String janCode) async {
+    if (!mounted) return;
+    final confirmed = await showOcrGuideDialog(context);
+    if (!confirmed || !mounted) return;
+
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: ImageSource.camera,

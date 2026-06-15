@@ -20,6 +20,7 @@ void main() async {
     url: 'https://nzzenffzsohmbnoscfvx.supabase.co',
     publishableKey: 'sb_publishable_sRZAzxUNJlsRHcWjxYT3Ew_m1iuEPLq',
   );
+  await loadAppSettings();
   await loadGlobalHistory();
   await loadUserAllergens();
   await loadCustomAllergens();
@@ -196,6 +197,54 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: Column(
             children: [
+              ValueListenableBuilder<Set<String>>(
+                valueListenable: userAllergens,
+                builder: (context, allergens, _) {
+                  if (allergens.isNotEmpty || customAllergens.value.isNotEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return GestureDetector(
+                    onTap: () => context.push('/settings'),
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        border: Border.all(color: Colors.amber.shade400),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.amber.shade800,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              t(
+                                'No allergens set. Tap to set your profile.',
+                                'アレルゲンが未設定です。タップして設定してください。',
+                              ),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.amber.shade900,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: Colors.amber.shade800,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
               Expanded(
                 flex: 4,
                 child: Center(

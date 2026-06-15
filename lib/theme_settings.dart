@@ -98,6 +98,27 @@ final ValueNotifier<Color> appThemeColor = ValueNotifier(Colors.green);
 final ValueNotifier<Set<String>> userAllergens = ValueNotifier({});
 final ValueNotifier<Set<String>> customAllergens = ValueNotifier({});
 
+Future<void> loadAppSettings() async {
+  final prefs = await SharedPreferences.getInstance();
+  appLanguage.value = prefs.getString('app_language') ?? 'en';
+  appTextScale.value = prefs.getDouble('app_text_scale') ?? 1.0;
+  final colorVal = prefs.getInt('app_theme_color');
+  if (colorVal != null) appThemeColor.value = Color(colorVal);
+
+  appLanguage.addListener(() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString('app_language', appLanguage.value);
+  });
+  appTextScale.addListener(() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setDouble('app_text_scale', appTextScale.value);
+  });
+  appThemeColor.addListener(() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('app_theme_color', appThemeColor.value.toARGB32());
+  });
+}
+
 Future<void> loadUserAllergens() async {
   final prefs = await SharedPreferences.getInstance();
   final saved = prefs.getStringList('user_allergens') ?? [];
@@ -169,6 +190,42 @@ Future<void> saveToGlobalHistory(Map<String, dynamic> product) async {
 // ---------------------------------------------------------
 // 🎨 UI：どの画面からでも呼び出せる共通の設定ボタンと画面
 // ---------------------------------------------------------
+
+Future<bool> showOcrGuideDialog(BuildContext context) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      icon: const Icon(
+        Icons.photo_camera_outlined,
+        size: 52,
+        color: Colors.teal,
+      ),
+      title: Text(t('Scan the ingredient label', '原材料表示を撮影')),
+      content: Text(
+        t(
+          'Point your camera at the ingredients list on the back of the package. Make sure the text is clearly visible and well-lit.',
+          '商品裏面の原材料表示にカメラを向けてください。\n文字がはっきり見えるよう、明るい場所で撮影してください。',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(t('Cancel', 'キャンセル')),
+        ),
+        ElevatedButton.icon(
+          onPressed: () => Navigator.pop(ctx, true),
+          icon: const Icon(Icons.camera_alt),
+          label: Text(t('Take Photo', '撮影する')),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
+}
 
 Widget buildGlobalSettingsButton(BuildContext context) {
   return IconButton(

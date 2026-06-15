@@ -20,6 +20,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _isOcrRunning = false;
 
   Future<void> _verifyWithOcr() async {
+    final confirmed = await showOcrGuideDialog(context);
+    if (!confirmed || !mounted) return;
+
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: ImageSource.camera,
