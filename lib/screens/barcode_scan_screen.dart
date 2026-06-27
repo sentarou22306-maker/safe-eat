@@ -204,38 +204,40 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
   }
 
   Widget _buildModeToggle() {
-    final isFast = _scanMode == ScanMode.fast;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _modeChip(ScanMode.fast, Icons.bolt_rounded, t('Fast', '高速'), Colors.amber.shade700),
+        const SizedBox(width: 4),
+        _modeChip(ScanMode.accurate, Icons.verified_user_rounded, t('Accurate', '精度'), Colors.teal),
+      ],
+    );
+  }
+
+  Widget _modeChip(ScanMode mode, IconData icon, String label, Color activeColor) {
+    final isActive = _scanMode == mode;
     return GestureDetector(
-      onTap: () => setState(() {
-        _scanMode = isFast ? ScanMode.accurate : ScanMode.fast;
-      }),
+      onTap: () => setState(() => _scanMode = mode),
       child: Container(
-        alignment: Alignment.center,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isFast ? Colors.amber.shade700 : Colors.teal,
+          color: isActive ? activeColor : Colors.black26,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isFast ? Icons.bolt_rounded : Icons.verified_user_rounded,
-              size: 14,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 4),
+            Icon(icon, size: 13, color: Colors.white),
+            const SizedBox(width: 3),
             Text(
-              isFast ? t('Fast', '最速') : t('Accurate', '精度'),
+              label,
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.swap_horiz, size: 14, color: Colors.white70),
           ],
         ),
       ),
@@ -271,6 +273,17 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                     }
                   }
                 },
+              ),
+              // Dim overlay with transparent cutout for the scan zone
+              Positioned.fill(
+                child: CustomPaint(painter: _ScanOverlayPainter()),
+              ),
+              // Corner-bracket frame showing where to aim
+              Center(
+                child: CustomPaint(
+                  size: const Size(260, 170),
+                  painter: _ScanFramePainter(),
+                ),
               ),
               if (_isLoading)
                 const Positioned.fill(
@@ -367,4 +380,55 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
       },
     );
   }
+}
+
+class _ScanOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const frameW = 260.0;
+    const frameH = 170.0;
+    final left = (size.width - frameW) / 2;
+    final top = (size.height - frameH) / 2;
+
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRect(Rect.fromLTWH(left, top, frameW, frameH))
+      ..fillType = PathFillType.evenOdd;
+
+    canvas.drawPath(path, Paint()..color = const Color(0x99000000));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _ScanFramePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    const len = 24.0;
+    final w = size.width;
+    final h = size.height;
+
+    // Top-left
+    canvas.drawLine(const Offset(0, len), const Offset(0, 0), paint);
+    canvas.drawLine(const Offset(0, 0), const Offset(len, 0), paint);
+    // Top-right
+    canvas.drawLine(Offset(w - len, 0), Offset(w, 0), paint);
+    canvas.drawLine(Offset(w, 0), Offset(w, len), paint);
+    // Bottom-left
+    canvas.drawLine(Offset(0, h - len), Offset(0, h), paint);
+    canvas.drawLine(Offset(0, h), Offset(len, h), paint);
+    // Bottom-right
+    canvas.drawLine(Offset(w - len, h), Offset(w, h), paint);
+    canvas.drawLine(Offset(w, h), Offset(w, h - len), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

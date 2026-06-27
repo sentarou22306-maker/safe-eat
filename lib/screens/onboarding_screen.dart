@@ -35,14 +35,95 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   void _nextPage() {
-    if (_currentPage < 2) {
+    if (_currentPage == 0) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      _finish();
+      _showDisclaimerSheet();
     }
+  }
+
+  Future<void> _showDisclaimerSheet() async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          24,
+          16,
+          24,
+          MediaQuery.of(ctx).padding.bottom + 32,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Icon(Icons.shield_outlined, size: 48, color: Colors.grey.shade500),
+            const SizedBox(height: 12),
+            Text(
+              t('Important Notice', '重要なご注意'),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                t(
+                  'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
+                  'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
+                ),
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.7,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: Text(
+                  t('I Understand — Get Started 🚀', '理解しました — 始める 🚀'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed == true) _finish();
   }
 
   Future<void> _finish() async {
@@ -62,9 +143,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Column(
               children: [
                 LinearProgressIndicator(
-                  value: (_currentPage + 1) / 3,
+                  value: (_currentPage + 1) / 2,
                   minHeight: 4,
-                  color: appThemeColor.value,
+                  color: Colors.green,
                   backgroundColor: Colors.grey.shade200,
                 ),
                 Expanded(
@@ -72,11 +153,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     controller: _pageController,
                     physics: const NeverScrollableScrollPhysics(),
                     onPageChanged: (i) => setState(() => _currentPage = i),
-                    children: [
-                      _buildLanguagePage(),
-                      _buildAllergenPage(),
-                      _buildDisclaimerPage(),
-                    ],
+                    children: [_buildLanguagePage(), _buildAllergenPage()],
                   ),
                 ),
               ],
@@ -88,44 +165,79 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildLanguagePage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.gpp_good_rounded, size: 80, color: Colors.green),
-          const SizedBox(height: 20),
-          const Text(
-            'SafeEat Japan',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Safe food scanning for travelers in Japan\n日本での食の安全をサポート',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-          const SizedBox(height: 40),
-          Text(
-            'Choose your language / 言語を選んでください',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700,
+    return Column(
+      children: [
+        // Gradient hero header — gives the screen personality
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(24, 36, 24, 32),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
+          child: const Column(
             children: [
-              Expanded(child: _langButton('English', 'en')),
-              const SizedBox(width: 16),
-              Expanded(child: _langButton('日本語', 'ja')),
+              Icon(Icons.gpp_good_rounded, size: 64, color: Colors.white),
+              SizedBox(height: 12),
+              Text(
+                'SafeEat Japan',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'Safe food scanning for travelers in Japan',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.white70),
+              ),
+              Text(
+                '日本での食の安全をサポート',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.white70),
+              ),
             ],
           ),
-          const SizedBox(height: 40),
-          _nextButton(),
-        ],
-      ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(32, 28, 32, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Choose your language / 言語を選んでください',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: _langButton('English', 'en')),
+                    const SizedBox(width: 12),
+                    Expanded(child: _langButton('日本語', 'ja')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+          child: _primaryButton(
+            t('Choose My Allergens', 'アレルゲンを選ぶ'),
+            _nextPage,
+          ),
+        ),
+      ],
     );
   }
 
@@ -138,24 +250,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? appThemeColor.value : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? Colors.green.shade50 : Colors.white,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? appThemeColor.value : Colors.grey.shade300,
-            width: 2,
+            color: isSelected ? Colors.green.shade400 : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
           ),
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.black87,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (isSelected) ...[
+              Icon(
+                Icons.check_circle_rounded,
+                size: 16,
+                color: Colors.green.shade600,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.green.shade700 : Colors.black54,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -166,13 +289,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                t('Select your allergens', 'アレルゲンを選択'),
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                t('Select your allergens', 'アレルゲンを選択してください'),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green.shade700,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -222,15 +349,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             selected: isSel,
-                            selectedColor: Colors.red.shade100,
-                            checkmarkColor: Colors.red,
+                            selectedColor: Colors.green.shade100,
+                            checkmarkColor: Colors.green.shade700,
                             side: isSel
-                                ? BorderSide(color: Colors.red.shade300)
+                                ? BorderSide(color: Colors.green.shade400)
                                 : BorderSide(color: Colors.grey.shade300),
                             labelStyle: TextStyle(
-                              color: isSel ? Colors.red.shade800 : Colors.black87,
-                              fontWeight:
-                                  isSel ? FontWeight.bold : FontWeight.normal,
+                              color: isSel
+                                  ? Colors.green.shade800
+                                  : Colors.black87,
+                              fontWeight: isSel
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                             onSelected: (val) {
                               final newSet = Set<String>.from(selected);
@@ -253,77 +383,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          child: _nextButton(),
+          child: _primaryButton(
+            t('Review & Start', '確認して始める'),
+            _nextPage,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildDisclaimerPage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade500),
-          const SizedBox(height: 20),
-          Text(
-            t('Important Notice', '重要なご注意'),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Text(
-              t(
-                'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
-                'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
-              ),
-              style: const TextStyle(fontSize: 13, height: 1.7, color: Colors.black87),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              onPressed: _finish,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: Text(
-                t('I Understand — Get Started 🚀', '理解しました — 始める 🚀'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _nextButton() {
+  Widget _primaryButton(String label, VoidCallback onPressed) {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: _nextPage,
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: appThemeColor.value,
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
         child: Text(
-          t('Next →', '次へ →'),
+          label,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),

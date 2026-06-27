@@ -67,13 +67,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: const TextStyle(fontSize: 12),
                   ),
                   selected: isSelected,
-                  selectedColor: Colors.red.shade100,
-                  checkmarkColor: Colors.red,
+                  selectedColor: Colors.green.shade100,
+                  checkmarkColor: Colors.green.shade700,
                   side: isSelected
-                      ? BorderSide(color: Colors.red.shade300)
+                      ? BorderSide(color: Colors.green.shade400)
                       : BorderSide(color: Colors.grey.shade300),
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.red.shade800 : Colors.black87,
+                    color: isSelected ? Colors.green.shade800 : Colors.black87,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
