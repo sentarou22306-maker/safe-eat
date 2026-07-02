@@ -84,7 +84,7 @@ Future<OcrResult> extractAllergensFromImageBytes(Uint8List imageBytes) async {
               {
                 'image': {'content': base64Image},
                 'features': [
-                  {'type': 'TEXT_DETECTION', 'maxResults': 1},
+                  {'type': 'DOCUMENT_TEXT_DETECTION'},
                 ],
                 'imageContext': {
                   'languageHints': ['ja', 'en'],

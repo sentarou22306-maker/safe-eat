@@ -159,7 +159,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: ImageSource.camera,
-      imageQuality: 85,
+      imageQuality: 100,
     );
     if (photo == null || !mounted) return;
 

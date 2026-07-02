@@ -41,8 +41,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
     final picker = ImagePicker();
     final photo = await picker.pickImage(
       source: source,
-      imageQuality: 80,
-      maxWidth: 1200,
+      imageQuality: 100,
     );
     if (photo == null) return;
     final bytes = await photo.readAsBytes();
