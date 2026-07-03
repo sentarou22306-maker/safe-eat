@@ -620,7 +620,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSafetyBanner(List<String> matched, bool hasAllergenProfile) {
-    if (!hasAllergenProfile) return const SizedBox.shrink();
+    if (!hasAllergenProfile) {
+      return GestureDetector(
+        onTap: () => context.push('/settings'),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.person_add_outlined, color: Colors.grey.shade600, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  t(
+                    'Register allergens to see if this product is safe for you.',
+                    'アレルゲンを登録すると、この商品の安全判定ができます。',
+                    zh: '注册过敏原，即可查看该商品是否适合您。',
+                  ),
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade500),
+            ],
+          ),
+        ),
+      );
+    }
+
     final isDanger = matched.isNotEmpty;
     return Container(
       width: double.infinity,
