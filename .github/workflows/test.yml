@@ -21,7 +21,9 @@ jobs:
           cache: true
 
       - name: Create .env file
-        run: echo "GOOGLE_VISION_API_KEY=dummy" > .env
+        run: |
+          echo "GOOGLE_VISION_API_KEY=dummy" > .env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
 
       - name: Install dependencies
         run: flutter pub get
