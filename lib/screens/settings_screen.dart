@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme_settings.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -10,6 +11,17 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _customController = TextEditingController();
+  bool _analyticsConsent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      setState(() {
+        _analyticsConsent = prefs.getBool('analytics_consent') ?? false;
+      });
+    });
+  }
 
   @override
   void dispose() {
@@ -316,6 +328,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _colorButton(Colors.pink),
                   _colorButton(Colors.black87),
                 ],
+              ),
+              const Divider(height: 40, thickness: 1),
+
+              // ── Privacy ───────────────────────────────────────
+              _sectionHeader(t('Privacy', 'プライバシー'), Icons.privacy_tip_outlined),
+              SwitchListTile(
+                value: _analyticsConsent,
+                onChanged: (v) async {
+                  setState(() => _analyticsConsent = v);
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('analytics_consent', v);
+                },
+                activeThumbColor: appThemeColor.value,
+                title: Text(
+                  t('Share anonymous scan statistics', '匿名のスキャン統計を共有する'),
+                  style: const TextStyle(fontSize: 14),
+                ),
+                subtitle: Text(
+                  t(
+                    'No personal info included. Helps improve allergen coverage.',
+                    '個人情報は含まれません。アレルゲン情報の改善に役立てます。',
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 48),
             ],

@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show Future, TimeoutException, unawaited;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../theme_settings.dart';
+import '../services/analytics_service.dart';
 import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
 
 enum ScanMode { fast, accurate }
@@ -75,6 +76,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         if (_scanMode == ScanMode.accurate) {
           productData['_autoVerify'] = true;
         }
+        unawaited(logScanEvent(source: 'db'));
         await context.push('/product_detail', extra: productData);
         return;
       }
@@ -117,6 +119,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
               ),
             ),
           );
+          unawaited(logScanEvent(source: 'ofa'));
           await context.push('/product_detail', extra: apiProduct);
           return;
         }
@@ -173,6 +176,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         result = await extractAllergensFromImage(photo.path);
       }
       if (!mounted) return;
+      unawaited(logScanEvent(source: 'ocr'));
       await context.push('/product_detail', extra: {
         'janCode': janCode,
         'name_jp': t('(OCR Scan Result)', '（OCR読み取り結果）'),

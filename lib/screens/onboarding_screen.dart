@@ -52,84 +52,127 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          16,
-          24,
-          MediaQuery.of(ctx).padding.bottom + 32,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder: (ctx) {
+        bool analyticsConsent = false;
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) => Padding(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              16,
+              24,
+              MediaQuery.of(ctx).padding.bottom + 32,
             ),
-            const SizedBox(height: 20),
-            Icon(Icons.shield_outlined, size: 48, color: Colors.grey.shade500),
-            const SizedBox(height: 12),
-            Text(
-              t('Important Notice', '重要なご注意'),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                t(
-                  'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
-                  'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
-                ),
-                style: const TextStyle(
-                  fontSize: 13,
-                  height: 1.7,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                child: Text(
-                  t('I Understand — Get Started 🚀', '理解しました — 始める 🚀'),
+                const SizedBox(height: 20),
+                Icon(
+                  Icons.shield_outlined,
+                  size: 48,
+                  color: Colors.grey.shade500,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  t('Important Notice', '重要なご注意'),
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    t(
+                      'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
+                      'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
+                    ),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.7,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Analytics consent toggle (opt-in, default off)
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SwitchListTile(
+                    value: analyticsConsent,
+                    onChanged: (v) => setSheetState(() => analyticsConsent = v),
+                    activeThumbColor: Colors.green,
+                    title: Text(
+                      t(
+                        'Share anonymous scan statistics',
+                        '匿名のスキャン統計を共有する',
+                      ),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      t(
+                        'No personal info included. Helps improve the app.',
+                        '個人情報は含まれません。アプリ改善に役立てます。',
+                      ),
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, analyticsConsent),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Text(
+                      t('I Understand — Get Started 🚀', '理解しました — 始める 🚀'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
-    if (confirmed == true) _finish();
+    if (confirmed != null) _finish(analyticsConsent: confirmed);
   }
 
-  Future<void> _finish() async {
+  Future<void> _finish({bool analyticsConsent = false}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
     await prefs.setBool('disclaimer_shown', true);
+    await prefs.setBool('analytics_consent', analyticsConsent);
     if (mounted) context.go('/');
   }
 
