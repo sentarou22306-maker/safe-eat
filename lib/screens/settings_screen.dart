@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme_settings.dart';
 
@@ -353,6 +354,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(fontSize: 12),
                 ),
                 contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.article_outlined, color: Colors.grey),
+                title: Text(
+                  t('Privacy Policy', 'プライバシーポリシー'),
+                  style: const TextStyle(fontSize: 14),
+                ),
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () => context.push('/privacy_policy'),
               ),
               const SizedBox(height: 48),
             ],

@@ -10,6 +10,7 @@ import 'screens/product_detail_screen.dart';
 import 'screens/allergen_report_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/privacy_policy_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -71,6 +72,11 @@ void main() async {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/privacy_policy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
       ),
     ],
   );
