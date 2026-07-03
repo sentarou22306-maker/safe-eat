@@ -7,23 +7,45 @@ import '../theme_settings.dart';
 
 class OcrResult {
   final String rawText;
+  final String ingredientText; // 原材料名セクションのみ（見つからない場合は全文）
   final Set<String> foundAllergens;
   final Set<String> crossContaminationAllergens;
   final bool hasUnspecifiedVegetableOil;
 
   const OcrResult({
     required this.rawText,
+    required this.ingredientText,
     required this.foundAllergens,
     this.crossContaminationAllergens = const {},
     this.hasUnspecifiedVegetableOil = false,
   });
 }
 
-Set<String> _extractAllergens(String text) {
-  final lower = text.toLowerCase();
+/// 「原材料名：〜」から次のセクションヘッダーまでを切り出す。
+/// 見つからなければ全文をそのまま返す。
+String extractIngredientSection(String fullText) {
+  final headerMatch =
+      RegExp(r'原材料名\s*[:：]?\s*').firstMatch(fullText);
+  if (headerMatch == null) return fullText;
+
+  final afterHeader = fullText.substring(headerMatch.end);
+
+  // 原材料名の後に現れる一般的なセクションヘッダー
+  final nextSection = RegExp(
+    r'(内容量|賞味期限|消費期限|保存方法|製造者|製造所|販売者|輸入者|原産国|原産地|栄養成分|アレルギー情報|添加物)',
+  );
+  final nextMatch = nextSection.firstMatch(afterHeader);
+  final extracted = nextMatch == null
+      ? afterHeader
+      : afterHeader.substring(0, nextMatch.start);
+  return extracted.trim().isEmpty ? fullText : extracted.trim();
+}
+
+Set<String> _extractAllergens(String ingredientText) {
+  final lower = ingredientText.toLowerCase();
   final found = allergenDictionary.entries
       .where((e) =>
-          text.contains(e.key) ||
+          ingredientText.contains(e.key) ||
           lower.contains(e.value['en']!.toLowerCase()))
       .map((e) => e.key)
       .toSet();
@@ -57,9 +79,11 @@ Future<OcrResult> extractAllergensFromImage(String imagePath) async {
     final inputImage = InputImage.fromFilePath(imagePath);
     final recognized = await recognizer.processImage(inputImage);
     final rawText = recognized.text;
+    final ingredientText = extractIngredientSection(rawText);
     return OcrResult(
       rawText: rawText,
-      foundAllergens: _extractAllergens(rawText),
+      ingredientText: ingredientText,
+      foundAllergens: _extractAllergens(ingredientText),
       crossContaminationAllergens: _extractCrossContamination(rawText),
       hasUnspecifiedVegetableOil: _detectUnspecifiedOil(rawText),
     );
@@ -103,14 +127,16 @@ Future<OcrResult> extractAllergensFromImageBytes(Uint8List imageBytes) async {
             (responses[0]['fullTextAnnotation']?['text'] ??
                 responses[0]['textAnnotations']?[0]?['description'] ??
                 '') as String;
+        final ingredientText = extractIngredientSection(rawText);
         return OcrResult(
           rawText: rawText,
-          foundAllergens: _extractAllergens(rawText),
+          ingredientText: ingredientText,
+          foundAllergens: _extractAllergens(ingredientText),
           crossContaminationAllergens: _extractCrossContamination(rawText),
           hasUnspecifiedVegetableOil: _detectUnspecifiedOil(rawText),
         );
       }
     }
   } catch (_) {}
-  return const OcrResult(rawText: '', foundAllergens: {});
+  return const OcrResult(rawText: '', ingredientText: '', foundAllergens: {});
 }

@@ -166,6 +166,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
       return;
     }
 
+    if (!mounted) return;
     final confirmed = await showOcrGuideDialog(context);
     if (!confirmed || !mounted) return;
 
@@ -195,6 +196,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         'ingredients': result.foundAllergens.toList(),
         '_source': 'ocr',
         '_ocrRawText': result.rawText,
+        '_ocrIngredientText': result.ingredientText,
       });
     } catch (e) {
       if (mounted) {

@@ -361,6 +361,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildOcrSourceSection() {
     final rawText = widget.product['_ocrRawText']?.toString() ?? '';
+    final ingredientText =
+        widget.product['_ocrIngredientText']?.toString() ?? rawText;
+    final sectionExtracted = ingredientText.isNotEmpty && ingredientText != rawText;
     final ingredients = widget.product['ingredients'] as List? ?? [];
     final hasText = rawText.trim().isNotEmpty;
     final hasAllergens = ingredients.isNotEmpty;
@@ -482,7 +485,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
         ),
-        // Raw text accordion (only when OCR read something)
+        // Text accordion (only when OCR read something)
         if (hasText) ...[
           const SizedBox(height: 6),
           InkWell(
@@ -496,21 +499,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.text_snippet_outlined,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  Icon(Icons.text_snippet_outlined,
+                      size: 16, color: Colors.grey.shade600),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      t('View scanned text', '読み取ったテキストを確認する', zh: '查看扫描文字'),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                      ),
+                      sectionExtracted
+                          ? t('View ingredients section', '原材料名セクションを確認する',
+                              zh: '查看原材料名栏')
+                          : t('View scanned text', '読み取ったテキストを確認する',
+                              zh: '查看扫描文字'),
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
                     ),
                   ),
+                  if (sectionExtracted)
+                    Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        t('Extracted', '抽出済', zh: '已提取'),
+                        style: TextStyle(
+                            fontSize: 10, color: Colors.green.shade800),
+                      ),
+                    ),
                   Icon(
                     _showRawText ? Icons.expand_less : Icons.expand_more,
                     color: Colors.grey.shade500,
@@ -529,9 +545,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 border: Border.all(color: Colors.grey.shade200),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                rawText,
-                style: const TextStyle(fontSize: 12, height: 1.7),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ingredientText,
+                    style: const TextStyle(fontSize: 12, height: 1.7),
+                  ),
+                  if (sectionExtracted) ...[
+                    const SizedBox(height: 8),
+                    const Divider(height: 1),
+                    const SizedBox(height: 6),
+                    Text(
+                      t('Full scanned text', '全文', zh: '完整扫描文字'),
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      rawText,
+                      style: TextStyle(
+                          fontSize: 11,
+                          height: 1.6,
+                          color: Colors.grey.shade600),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
