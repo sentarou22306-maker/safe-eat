@@ -4,28 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme_settings.dart';
 import '../services/rate_limit_service.dart';
 
-const _kCountries = [
-  ('South Korea',   '韓国',         '韩国'),
-  ('China',         '中国',         '中国'),
-  ('Taiwan',        '台湾',         '台湾'),
-  ('United States', 'アメリカ',     '美国'),
-  ('Hong Kong',     '香港',         '香港'),
-  ('Thailand',      'タイ',         '泰国'),
-  ('Australia',     'オーストラリア','澳大利亚'),
-  ('Vietnam',       'ベトナム',     '越南'),
-  ('United Kingdom','イギリス',     '英国'),
-  ('Canada',        'カナダ',       '加拿大'),
-  ('France',        'フランス',     '法国'),
-  ('Germany',       'ドイツ',       '德国'),
-  ('Singapore',     'シンガポール', '新加坡'),
-  ('India',         'インド',       '印度'),
-  ('Malaysia',      'マレーシア',   '马来西亚'),
-  ('Indonesia',     'インドネシア', '印度尼西亚'),
-  ('Philippines',   'フィリピン',   '菲律宾'),
-  ('Italy',         'イタリア',     '意大利'),
-  ('Spain',         'スペイン',     '西班牙'),
-  ('Other',         'その他',       '其他'),
-];
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -39,7 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _analyticsConsent = false;
   String? _ageRange;
   String? _gender;
-  String? _selectedCountry;
+  final _countryController = TextEditingController();
   int _ocrLimit = 5;
 
   @override
@@ -50,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _analyticsConsent = prefs.getBool('analytics_consent') ?? false;
         _ageRange = prefs.getString('profile_age_range');
         _gender = prefs.getString('profile_gender');
-        _selectedCountry = prefs.getString('profile_country');
+        _countryController.text = prefs.getString('profile_country') ?? '';
       });
       getDailyOcrLimit().then((limit) {
         if (mounted) setState(() => _ocrLimit = limit);
@@ -61,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void dispose() {
     _customController.dispose();
+    _countryController.dispose();
     super.dispose();
   }
 
@@ -506,33 +485,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCountry,
+              TextField(
+                controller: _countryController,
                 decoration: InputDecoration(
+                  hintText: t(
+                    'e.g. South Korea, France',
+                    '例: 韓国、フランス',
+                    zh: '例如：韩国、法国',
+                  ),
                   border: const OutlineInputBorder(),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
-                  hintText: t('Select country', '国を選択', zh: '选择国家'),
                 ),
-                items: _kCountries.map((c) {
-                  final (en, ja, zh) = c;
-                  final label = switch (appLanguage.value) {
-                    'ja' => ja,
-                    'zh' => zh,
-                    _ => en,
-                  };
-                  return DropdownMenuItem<String>(
-                      value: en, child: Text(label));
-                }).toList(),
-                onChanged: (val) async {
-                  setState(() => _selectedCountry = val);
+                textInputAction: TextInputAction.done,
+                onSubmitted: (val) async {
+                  final trimmed = val.trim();
+                  final focusScope = FocusScope.of(context);
                   final prefs = await SharedPreferences.getInstance();
-                  if (val != null) {
-                    await prefs.setString('profile_country', val);
+                  if (trimmed.isNotEmpty) {
+                    await prefs.setString('profile_country', trimmed);
                   } else {
                     await prefs.remove('profile_country');
                   }
+                  if (mounted) focusScope.unfocus();
                   await _saveProfile();
                 },
               ),

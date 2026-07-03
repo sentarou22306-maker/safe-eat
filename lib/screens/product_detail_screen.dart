@@ -700,7 +700,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        t('⚠ DANGER  危険', '⚠ 危険  DANGER'),
+                        t('⚠ DANGER  危険', '⚠ 危険  DANGER', zh: '⚠ 危险  DANGER'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,

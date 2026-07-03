@@ -135,7 +135,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         t(
           'Not in database. Scanning package label...',
           'データベースにありません。ラベルをスキャンします...',
-          zh: 'データ库中未找到，正在扫描包装标签...',
+          zh: '数据库中未找到，正在扫描包装标签...',
         ),
       );
       await _scanWithOcr(janCode);

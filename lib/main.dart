@@ -341,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           bottom: 16,
                         ),
                         child: Text(
-                          t('Recently Viewed', '最近見たお土産', zh: '最近浏览'),
+                          t('Recently Viewed', '最近見た商品', zh: '最近浏览'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

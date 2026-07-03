@@ -234,7 +234,7 @@ Future<bool> showOcrGuideDialog(BuildContext context) async {
 Widget buildGlobalSettingsButton(BuildContext context) {
   return IconButton(
     icon: const Icon(Icons.settings),
-    tooltip: t('Settings', '設定'),
+    tooltip: t('Settings', '設定', zh: '设置'),
     onPressed: () => context.push('/settings'),
   );
 }
