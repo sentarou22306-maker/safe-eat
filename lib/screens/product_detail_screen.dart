@@ -18,6 +18,7 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   OcrResult? _ocrResult;
   bool _isOcrRunning = false;
+  bool _showRawText = false;
 
   Future<void> _verifyWithOcr() async {
     final confirmed = await showOcrGuideDialog(context);
@@ -345,6 +346,191 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ];
   }
 
+  Widget _buildOcrSourceSection() {
+    final rawText = widget.product['_ocrRawText']?.toString() ?? '';
+    final ingredients = widget.product['ingredients'] as List? ?? [];
+    final hasText = rawText.trim().isNotEmpty;
+    final hasAllergens = ingredients.isNotEmpty;
+
+    Color cardColor;
+    Color borderColor;
+    IconData icon;
+    Color iconColor;
+    String headline;
+    String subtext;
+
+    if (!hasText) {
+      cardColor = Colors.grey.shade100;
+      borderColor = Colors.grey.shade300;
+      icon = Icons.camera_alt_outlined;
+      iconColor = Colors.grey.shade600;
+      headline = t('Could not read any text', 'テキストを読み取れませんでした');
+      subtext = t(
+        'Hold the camera still, ensure good lighting, and aim directly at the ingredient list.',
+        'カメラをしっかり固定し、明るい場所で原材料表示の部分を真正面から撮影してください。',
+      );
+    } else if (!hasAllergens) {
+      cardColor = Colors.green.shade50;
+      borderColor = Colors.green.shade200;
+      icon = Icons.check_circle_outline_rounded;
+      iconColor = Colors.green.shade700;
+      headline = t(
+        'No allergens from your profile detected',
+        'あなたのアレルゲンは検出されませんでした',
+      );
+      subtext = t(
+        'The label was read successfully. Tap below to verify the scanned text matches the ingredient list.',
+        'ラベルの読み取りに成功しました。以下で読み取ったテキストを確認してください。',
+      );
+    } else {
+      cardColor = Colors.red.shade50;
+      borderColor = Colors.red.shade200;
+      icon = Icons.warning_amber_rounded;
+      iconColor = Colors.red.shade700;
+      headline = t('Allergens detected on label', 'ラベルからアレルゲンを検出しました');
+      subtext = t(
+        'Tap below to verify the full scanned text.',
+        '以下で読み取ったテキスト全文を確認できます。',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Status card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: cardColor,
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icon, color: iconColor, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          headline,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: iconColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtext,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: iconColor.withValues(alpha: 0.85),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              // Re-scan button when OCR failed
+              if (!hasText) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: _isOcrRunning ? null : _verifyWithOcr,
+                  icon: _isOcrRunning
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.camera_alt_outlined, size: 18),
+                  label: Text(t('Retake Photo', '撮り直す')),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 42),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        // Raw text accordion (only when OCR read something)
+        if (hasText) ...[
+          const SizedBox(height: 6),
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => setState(() => _showRawText = !_showRawText),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.text_snippet_outlined,
+                    size: 16,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      t('View scanned text', '読み取ったテキストを確認する'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    _showRawText ? Icons.expand_less : Icons.expand_more,
+                    color: Colors.grey.shade500,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_showRawText) ...[
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                border: Border.all(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                rawText,
+                style: const TextStyle(fontSize: 12, height: 1.7),
+              ),
+            ),
+          ],
+        ],
+        const SizedBox(height: 4),
+        Text(
+          t(
+            '⚠️ OCR may not detect all text accurately. Always check the actual label.',
+            '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。必ず実際のラベルをご確認ください。',
+          ),
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+        ),
+      ],
+    );
+  }
+
   bool _matchesAllergen(String ingredient, String allergenJp) {
     final lower = ingredient.toLowerCase();
     if (lower.contains(allergenJp.toLowerCase())) return true;
@@ -481,37 +667,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               },
             ),
             if (widget.product['_source'] == 'ocr') ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
-                  border: Border.all(color: Colors.amber.shade200),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.photo_camera_outlined,
-                      color: Colors.amber.shade800,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        t(
-                          'This information was extracted from the package image using OCR and may not be 100% accurate. Always verify by reading the actual package label.',
-                          'この情報は商品パッケージの画像からOCRで読み取ったものです。正確性を保証しません。必ず実際のパッケージ表示をご確認ください。',
-                        ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.amber.shade900,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildOcrSourceSection(),
               const SizedBox(height: 12),
             ],
             Card(
@@ -653,15 +809,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                             const Divider(height: 24, thickness: 1),
                             if (ingredients.isEmpty) ...[
-                              Text(
-                                t(
-                                  'No allergen data registered for this product.',
-                                  'この商品のアレルゲン情報はまだ登録されていません。',
-                                ),
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 12),
+                              // OCR source: status is shown above in _buildOcrSourceSection
                               if (widget.product['_source'] != 'ocr') ...[
+                                Text(
+                                  t(
+                                    'No allergen data registered for this product.',
+                                    'この商品のアレルゲン情報はまだ登録されていません。',
+                                  ),
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                                const SizedBox(height: 12),
                                 ElevatedButton.icon(
                                   onPressed:
                                       _isOcrRunning ? null : _verifyWithOcr,
