@@ -548,22 +548,48 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  bool _matchesAllergen(String ingredient, String allergenJp) {
-    final lower = ingredient.toLowerCase();
-    if (lower.contains(allergenJp.toLowerCase())) return true;
-    final en = allergenDictionary[allergenJp]?['en']?.toLowerCase() ?? '';
-    return en.isNotEmpty && lower.contains(en);
+  String? _extractAllergenKey(String ingredient) {
+    if (allergenDictionary.containsKey(ingredient)) return ingredient;
+    for (final key in allergenDictionary.keys) {
+      if (ingredient.contains(key)) return key;
+    }
+    return null;
   }
 
-  Map<String, String> _translateIngredient(String jpIngredient) {
-    if (allergenDictionary.containsKey(jpIngredient)) {
-      return allergenDictionary[jpIngredient]!;
+  Set<String> _extractAllergenKeys(List<String> ingredients) {
+    final keys = <String>{};
+    for (final ingredient in ingredients) {
+      final key = _extractAllergenKey(ingredient);
+      if (key != null) keys.add(key);
     }
-    // OFA生テキストのサブ文字列マッチで辞書エントリを探す
-    for (final entry in allergenDictionary.entries) {
-      if (jpIngredient.contains(entry.key)) return entry.value;
-    }
-    return {'en': jpIngredient, 'emoji': '🔍'};
+    return keys;
+  }
+
+  Widget _buildRawIngredientsAccordion(List<String> ingredients) {
+    final rawText = ingredients.join(', ');
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        title: Text(
+          t('Full ingredient list', '原材料一覧', zh: '完整成分表'),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              border: Border.all(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(rawText,
+                style: const TextStyle(fontSize: 12, height: 1.6)),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSourceBadge() {
@@ -683,7 +709,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        matched.join('  '),
+                        matched.map((k) {
+                          if (appLanguage.value == 'ja') return k;
+                          return allergenDictionary[k]?[appLanguage.value] ??
+                              allergenDictionary[k]?['en'] ?? k;
+                        }).join('  '),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -737,11 +767,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         .where((e) => e.isNotEmpty)
         .toList();
 
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: appLanguage,
+      builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '商品詳細 / Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          t('Details', '商品詳細', zh: '商品详情'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [buildGlobalSettingsButton(context)],
       ),
@@ -756,8 +788,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               builder: (context, myAllergens, _) {
                 final allAllergens = {...myAllergens, ...customAllergens.value};
                 if (ingredients.isEmpty) return const SizedBox.shrink();
-                final matched = ingredients
-                    .where((e) => allAllergens.any((a) => _matchesAllergen(e, a)))
+                final allergenKeys = _extractAllergenKeys(ingredients);
+                final matched = allergenKeys
+                    .where((k) => allAllergens.contains(k))
                     .toList();
                 return Column(
                   children: [
@@ -832,8 +865,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               valueListenable: userAllergens,
               builder: (context, myAllergens, _) {
                 final allMyAllergens = {...myAllergens, ...customAllergens.value};
-                final matched = ingredients
-                    .where((e) => allMyAllergens.any((a) => _matchesAllergen(e, a)))
+                final allergenKeys = _extractAllergenKeys(ingredients);
+                final matched = allergenKeys
+                    .where((k) => allMyAllergens.contains(k))
                     .toList();
                 return Column(
                   children: [
@@ -859,9 +893,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'WARNING / 警告',
-                                      style: TextStyle(
+                                    Text(
+                                      t('WARNING', '警告', zh: '警告'),
+                                      style: const TextStyle(
                                         color: Colors.red,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -869,7 +903,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Contains your allergens: ${matched.join(', ')}\nあなたのアレルゲンが含まれています',
+                                      t(
+                                        'Contains: ${matched.map((k) => allergenDictionary[k]?['en'] ?? k).join(', ')}',
+                                        '含有アレルゲン: ${matched.join('、')}',
+                                        zh: '含有过敏原: ${matched.map((k) => allergenDictionary[k]?['zh'] ?? k).join('、')}',
+                                      ),
                                       style: TextStyle(
                                         color: Colors.red.shade800,
                                         fontSize: 13,
@@ -893,17 +931,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.warning_amber_rounded,
                                   color: Colors.orange,
                                   size: 28,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
-                                  'アレルギー情報 / Allergens',
-                                  style: TextStyle(
+                                  t('Allergens', 'アレルギー情報', zh: '过敏原信息'),
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -967,68 +1005,68 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ),
                                 ),
                               ],
-                            ] else
-                              Wrap(
-                                spacing: 8.0,
-                                runSpacing: 12.0,
-                                children: ingredients.map((jpIngredient) {
-                                  final translation = _translateIngredient(
-                                    jpIngredient,
-                                  );
-                                  final enName = translation['en']!;
-                                  final emoji = translation['emoji']!;
-                                  final isMatch = allMyAllergens
-                                      .any((a) => _matchesAllergen(jpIngredient, a));
-
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isMatch
-                                          ? Colors.red.shade100
-                                          : Colors.orange.shade50,
-                                      border: Border.all(
+                            ] else ...[
+                              if (allergenKeys.isEmpty)
+                                Text(
+                                  t('No allergens detected.', 'アレルゲンは検出されませんでした。', zh: '未检测到已知过敏原。'),
+                                  style: const TextStyle(color: Colors.grey),
+                                )
+                              else
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 12.0,
+                                  children: allergenKeys.map((allergenKey) {
+                                    final info = allergenDictionary[allergenKey]!;
+                                    final displayName = appLanguage.value == 'ja'
+                                        ? allergenKey
+                                        : (info[appLanguage.value] ?? info['en']!);
+                                    final emoji = info['emoji']!;
+                                    final isMatch = allMyAllergens.contains(allergenKey);
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                      decoration: BoxDecoration(
                                         color: isMatch
-                                            ? Colors.red.shade400
-                                            : Colors.orange.shade200,
-                                        width: isMatch ? 2 : 1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        isMatch
-                                            ? const Icon(
-                                                Icons.warning_rounded,
-                                                color: Colors.red,
-                                                size: 18,
-                                              )
-                                            : Text(
-                                                emoji,
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                ),
-                                              ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          jpIngredient == enName
-                                              ? enName
-                                              : '$jpIngredient ($enName)',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: isMatch
-                                                ? Colors.red.shade800
-                                                : Colors.black87,
-                                          ),
+                                            ? Colors.red.shade100
+                                            : Colors.orange.shade50,
+                                        border: Border.all(
+                                          color: isMatch
+                                              ? Colors.red.shade400
+                                              : Colors.orange.shade200,
+                                          width: isMatch ? 2 : 1,
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          isMatch
+                                              ? const Icon(Icons.warning_rounded,
+                                                  color: Colors.red, size: 18)
+                                              : Text(emoji,
+                                                  style: const TextStyle(fontSize: 18)),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            appLanguage.value == 'ja'
+                                                ? allergenKey
+                                                : '$allergenKey / $displayName',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: isMatch
+                                                  ? Colors.red.shade800
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              if (widget.product['_source'] == 'ofa') ...[
+                                const SizedBox(height: 8),
+                                _buildRawIngredientsAccordion(ingredients),
+                              ],
+                            ],
                           ],
                         ),
                       ),
@@ -1081,9 +1119,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Icons.qr_code_scanner,
                   color: Colors.black54,
                 ),
-                title: const Text(
-                  'JANコード / Barcode',
-                  style: TextStyle(fontSize: 14),
+                title: Text(
+                  t('Barcode (JAN)', 'JANコード', zh: '条形码（JAN）'),
+                  style: const TextStyle(fontSize: 14),
                 ),
                 trailing: Text(
                   janCode,
@@ -1147,6 +1185,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

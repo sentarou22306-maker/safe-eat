@@ -433,7 +433,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: _primaryButton(
-            t('Review & Start', '確認して始める'),
+            t('Review & Start', '確認して始める', zh: '确认并开始'),
             _nextPage,
           ),
         ),

@@ -233,6 +233,11 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
               _limitRow(t('+ Gender', '+ 性別', zh: '+ 性别'), '18'),
               _limitRow(t('+ Country', '+ 出身国', zh: '+ 国籍'), '30'),
               _limitRow(t('+ Analytics consent', '+ アナリティクス同意', zh: '+ 统计同意'), '+5'),
+              const SizedBox(height: 8),
+              Text(
+                t('Resets at midnight daily.', '毎日深夜0時にリセットされます。', zh: '每天午夜重置。'),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
             ],
           ),
           actions: [
