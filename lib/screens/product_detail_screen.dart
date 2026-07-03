@@ -46,7 +46,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              t('Could not read image.', '画像の読み取りに失敗しました。'),
+              t('Could not read image.', '画像の読み取りに失敗しました。', zh: '图像读取失败。'),
             ),
           ),
         );
@@ -79,6 +79,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       t(
                         'Made in shared facility with:',
                         '同じ製造環境で以下を扱っています:',
+                        zh: '该产品在共用设施中与以下物质共同生产：',
                       ),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -113,6 +114,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 t(
                   '⚠️ Trace amounts may be present due to shared manufacturing.',
                   '⚠️ 製造工程上、微量混入の可能性があります。',
+                  zh: '⚠️ 由于共用生产设备，可能含有微量成分。',
                 ),
                 style: TextStyle(fontSize: 11, color: Colors.orange.shade700),
               ),
@@ -143,7 +145,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      t('Vegetable oil detected', '植物油脂が含まれています'),
+                      t('Vegetable oil detected', '植物油脂が含まれています', zh: '检测到植物油'),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
@@ -151,6 +153,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       t(
                         'The label lists "vegetable oil" without specifying the source. It may contain soy, rapeseed, sesame, or other allergens.',
                         '「植物油脂」と記載されていますが原料が特定されていません。大豆・菜種・ごまなどのアレルゲンを含む可能性があります。',
+                        zh: '标签标注"植物油"但未注明来源，可能含有大豆、芥花油、芝麻等过敏原。',
                       ),
                       style: TextStyle(
                         fontSize: 12,
@@ -203,10 +206,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ? t(
                                 'No allergens detected on label.',
                                 'ラベルからアレルゲンは検出されませんでした。',
+                                zh: '标签上未检测到过敏原。',
                               )
                             : t(
                                 'Allergens found on label:',
                                 'ラベルから検出されたアレルゲン:',
+                                zh: '标签上检测到的过敏原：',
                               ),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -238,6 +243,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   t(
                     '⚠️ OCR may not detect all text accurately. Always check the actual label.',
                     '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。必ず実際のラベルをご確認ください。',
+                    zh: '⚠️ OCR识别结果可能不完全准确，请务必查看实际标签。',
                   ),
                   style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
                 ),
@@ -282,8 +288,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ? t(
                               'Consistent! Both sources agree.',
                               '一致！データベースとラベルが同じです。',
+                              zh: '一致！两个来源信息相同。',
                             )
-                          : t('Discrepancy detected', '不一致が検出されました'),
+                          : t('Discrepancy detected', '不一致が検出されました', zh: '发现不一致'),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isConsistent
@@ -300,10 +307,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ? t(
                         'The database and the package label show the same allergen information. This information is likely reliable.',
                         'データベースとパッケージ表示のアレルゲン情報が一致しています。この情報は信頼性が高いと考えられます。',
+                        zh: '数据库与包装标签显示的过敏原信息相同，可信度较高。',
                       )
                     : t(
                         'The package label and database show different allergens. Please read the actual package carefully.',
                         'パッケージ表示とデータベースの情報が異なります。実際のパッケージを注意深くご確認ください。',
+                        zh: '包装标签与数据库的信息不同，请仔细查看实际包装。',
                       ),
                 style: TextStyle(
                   fontSize: 12,
@@ -319,6 +328,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     t(
                       'Found on label only: ${onlyInOcr.join(', ')}',
                       'ラベルのみに記載: ${onlyInOcr.join('、')}',
+                      zh: '仅标签上有: ${onlyInOcr.join('、')}',
                     ),
                     style: const TextStyle(fontSize: 11),
                   ),
@@ -327,6 +337,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     t(
                       'In database only: ${onlyInDb.join(', ')}',
                       'データベースのみに記載: ${onlyInDb.join('、')}',
+                      zh: '仅数据库有: ${onlyInDb.join('、')}',
                     ),
                     style: const TextStyle(fontSize: 11),
                   ),
@@ -336,6 +347,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 t(
                   '⚠️ OCR may not detect all text accurately.',
                   '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。',
+                  zh: '⚠️ OCR识别结果可能不完全准确。',
                 ),
                 style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
               ),
@@ -364,10 +376,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       borderColor = Colors.grey.shade300;
       icon = Icons.camera_alt_outlined;
       iconColor = Colors.grey.shade600;
-      headline = t('Could not read any text', 'テキストを読み取れませんでした');
+      headline = t('Could not read any text', 'テキストを読み取れませんでした', zh: '无法读取任何文字');
       subtext = t(
         'Hold the camera still, ensure good lighting, and aim directly at the ingredient list.',
         'カメラをしっかり固定し、明るい場所で原材料表示の部分を真正面から撮影してください。',
+        zh: '请保持相机稳定，在光线充足的环境下，正对成分表进行拍摄。',
       );
     } else if (!hasAllergens) {
       cardColor = Colors.green.shade50;
@@ -377,20 +390,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       headline = t(
         'No allergens from your profile detected',
         'あなたのアレルゲンは検出されませんでした',
+        zh: '未检测到您档案中的过敏原',
       );
       subtext = t(
         'The label was read successfully. Tap below to verify the scanned text matches the ingredient list.',
         'ラベルの読み取りに成功しました。以下で読み取ったテキストを確認してください。',
+        zh: '标签读取成功。点击下方查看扫描文字是否与成分表一致。',
       );
     } else {
       cardColor = Colors.red.shade50;
       borderColor = Colors.red.shade200;
       icon = Icons.warning_amber_rounded;
       iconColor = Colors.red.shade700;
-      headline = t('Allergens detected on label', 'ラベルからアレルゲンを検出しました');
+      headline = t('Allergens detected on label', 'ラベルからアレルゲンを検出しました', zh: '标签上检测到过敏原');
       subtext = t(
         'Tap below to verify the full scanned text.',
         '以下で読み取ったテキスト全文を確認できます。',
+        zh: '点击下方查看完整扫描文字。',
       );
     }
 
@@ -453,7 +469,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         )
                       : const Icon(Icons.camera_alt_outlined, size: 18),
-                  label: Text(t('Retake Photo', '撮り直す')),
+                  label: Text(t('Retake Photo', '撮り直す', zh: '重新拍摄')),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 42),
                     shape: RoundedRectangleBorder(
@@ -487,7 +503,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      t('View scanned text', '読み取ったテキストを確認する'),
+                      t('View scanned text', '読み取ったテキストを確認する', zh: '查看扫描文字'),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade700,
@@ -524,6 +540,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           t(
             '⚠️ OCR may not detect all text accurately. Always check the actual label.',
             '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。必ず実際のラベルをご確認ください。',
+            zh: '⚠️ OCR识别结果可能不完全准确，请务必查看实际标签。',
           ),
           style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
         ),
@@ -547,6 +564,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       if (jpIngredient.contains(entry.key)) return entry.value;
     }
     return {'en': jpIngredient, 'emoji': '🔍'};
+  }
+
+  Widget _buildSourceBadge() {
+    final source = widget.product['_source']?.toString();
+    if (source == 'ocr') return const SizedBox.shrink(); // OCR has its own section
+
+    final (icon, label, bg, fg) = switch (source) {
+      'db' => (
+          Icons.verified_rounded,
+          t('Verified Database', '認証データベース', zh: '认证数据库'),
+          Colors.green.shade50,
+          Colors.green.shade700,
+        ),
+      'ofa' => (
+          Icons.public_rounded,
+          'Open Food Facts',
+          Colors.blue.shade50,
+          Colors.blue.shade700,
+        ),
+      _ => (
+          Icons.help_outline_rounded,
+          t('Unknown source', '不明なソース', zh: '未知来源'),
+          Colors.grey.shade100,
+          Colors.grey.shade600,
+        ),
+    };
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: fg.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: fg),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: fg,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSafetyBanner(List<String> matched, bool hasAllergenProfile) {
@@ -591,7 +661,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ],
                   )
                 : Text(
-                    t('✓ SAFE — No matched allergens', '✓ 安全 — 登録アレルゲンは含まれていません'),
+                    t('✓ SAFE — No matched allergens', '✓ 安全 — 登録アレルゲンは含まれていません', zh: '✓ 安全 — 未检测到过敏原'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -724,7 +794,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            _buildSourceBadge(),
+            const SizedBox(height: 8),
             ValueListenableBuilder<Set<String>>(
               valueListenable: userAllergens,
               builder: (context, myAllergens, _) {
@@ -815,6 +887,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   t(
                                     'No allergen data registered for this product.',
                                     'この商品のアレルゲン情報はまだ登録されていません。',
+                                    zh: '该商品暂无过敏原数据。',
                                   ),
                                   style: const TextStyle(color: Colors.grey),
                                 ),
@@ -837,6 +910,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     t(
                                       'Scan label for allergen info',
                                       'ラベルをスキャンしてアレルゲンを確認する',
+                                      zh: '扫描标签获取过敏原信息',
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -854,6 +928,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   t(
                                     '⚠️ OCR results are for reference only.',
                                     '⚠️ OCR読み取り結果は参考情報です。',
+                                    zh: '⚠️ OCR结果仅供参考。',
                                   ),
                                   style: TextStyle(
                                     fontSize: 11,
@@ -947,7 +1022,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         color: Colors.teal,
                       ),
                 label: Text(
-                  t('Verify with package label', 'ラベルで確認する'),
+                  t('Verify with package label', 'ラベルで確認する', zh: '用包装标签验证'),
                   style: const TextStyle(color: Colors.teal),
                 ),
                 style: OutlinedButton.styleFrom(

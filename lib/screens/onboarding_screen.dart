@@ -81,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  t('Important Notice', '重要なご注意'),
+                  t('Important Notice', '重要なご注意', zh: '重要提示'),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -98,6 +98,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     t(
                       'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
                       'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
+                      zh: '本应用提供的过敏原信息仅供参考，不保证100%准确或最新。\n\n食用前请务必确认实际商品包装上的标注。严重过敏人群请勿仅依赖本应用。',
                     ),
                     style: const TextStyle(
                       fontSize: 13,
@@ -122,6 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       t(
                         'Share anonymous scan statistics',
                         '匿名のスキャン統計を共有する',
+                        zh: '共享匿名扫描统计',
                       ),
                       style: const TextStyle(
                         fontSize: 13,
@@ -132,6 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       t(
                         'No personal info included. Helps improve the app.',
                         '個人情報は含まれません。アプリ改善に役立てます。',
+                        zh: '不含个人信息，用于改善应用。',
                       ),
                       style: const TextStyle(fontSize: 11),
                     ),
@@ -151,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     child: Text(
-                      t('I Understand — Get Started 🚀', '理解しました — 始める 🚀'),
+                      t('I Understand — Get Started 🚀', '理解しました — 始める 🚀', zh: '我已了解 — 开始使用 🚀'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -254,7 +257,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choose your language / 言語を選んでください',
+                  'Choose your language / 言語を選んでください / 请选择语言',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -265,8 +268,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Row(
                   children: [
                     Expanded(child: _langButton('English', 'en')),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(child: _langButton('日本語', 'ja')),
+                    const SizedBox(width: 8),
+                    Expanded(child: _langButton('中文', 'zh')),
                   ],
                 ),
               ],
@@ -276,7 +281,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
           child: _primaryButton(
-            t('Choose My Allergens', 'アレルゲンを選ぶ'),
+            t('Choose My Allergens', 'アレルゲンを選ぶ', zh: '选择过敏原'),
             _nextPage,
           ),
         ),
@@ -337,7 +342,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                t('Select your allergens', 'アレルゲンを選択してください'),
+                t('Select your allergens', 'アレルゲンを選択してください', zh: '选择您的过敏原'),
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -349,6 +354,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 t(
                   'You will be warned when a product contains them.\nYou can change this anytime in Settings.',
                   '商品に含まれる場合に警告が表示されます。\n設定からいつでも変更できます。',
+                  zh: '检测到过敏原时会发出警告。\n可随时在设置中更改。',
                 ),
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
@@ -383,12 +389,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         children: keys.map((jp) {
                           final info = allergenDictionary[jp];
                           if (info == null) return const SizedBox.shrink();
-                          final en = info['en']!;
+                          final displayName = info[appLanguage.value] ?? info['en']!;
                           final emoji = info['emoji']!;
                           final isSel = selected.contains(jp);
                           return FilterChip(
                             label: Text(
-                              '$emoji $jp / $en',
+                              '$emoji $jp / $displayName',
                               style: const TextStyle(fontSize: 12),
                             ),
                             selected: isSel,

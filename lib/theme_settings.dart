@@ -9,46 +9,46 @@ import 'package:shared_preferences/shared_preferences.dart';
 // 日本 特定原材料（義務8品目）＋ 準ずるもの21品目 ＋ EU・米国追加分
 const Map<String, Map<String, String>> allergenDictionary = {
   // ── 日本 義務表示 8品目 ──
-  '卵': {'en': 'Egg', 'emoji': '🥚'},
-  '乳成分': {'en': 'Milk', 'emoji': '🥛'},
-  '小麦': {'en': 'Wheat', 'emoji': '🌾'},
-  'そば': {'en': 'Buckwheat', 'emoji': '🍜'},
-  '落花生': {'en': 'Peanut', 'emoji': '🥜'},
-  'えび': {'en': 'Shrimp', 'emoji': '🦐'},
-  'かに': {'en': 'Crab', 'emoji': '🦀'},
-  'くるみ': {'en': 'Walnut', 'emoji': '🌰'},
+  '卵': {'en': 'Egg', 'emoji': '🥚', 'zh': '鸡蛋'},
+  '乳成分': {'en': 'Milk', 'emoji': '🥛', 'zh': '乳制品'},
+  '小麦': {'en': 'Wheat', 'emoji': '🌾', 'zh': '小麦'},
+  'そば': {'en': 'Buckwheat', 'emoji': '🍜', 'zh': '荞麦'},
+  '落花生': {'en': 'Peanut', 'emoji': '🥜', 'zh': '花生'},
+  'えび': {'en': 'Shrimp', 'emoji': '🦐', 'zh': '虾'},
+  'かに': {'en': 'Crab', 'emoji': '🦀', 'zh': '螃蟹'},
+  'くるみ': {'en': 'Walnut', 'emoji': '🌰', 'zh': '核桃'},
   // ── 日本 推奨表示 21品目 ──
-  'アーモンド': {'en': 'Almond', 'emoji': '🌰'},
-  'あわび': {'en': 'Abalone', 'emoji': '🐚'},
-  'いか': {'en': 'Squid', 'emoji': '🦑'},
-  'いくら': {'en': 'Salmon Roe', 'emoji': '🟠'},
-  'オレンジ': {'en': 'Orange', 'emoji': '🍊'},
-  'カシューナッツ': {'en': 'Cashew', 'emoji': '🌰'},
-  'キウイフルーツ': {'en': 'Kiwi', 'emoji': '🥝'},
-  '牛肉': {'en': 'Beef', 'emoji': '🐮'},
-  'ごま': {'en': 'Sesame', 'emoji': '🌿'},
-  'さけ': {'en': 'Salmon', 'emoji': '🐟'},
-  'さば': {'en': 'Mackerel', 'emoji': '🐡'},
-  '大豆': {'en': 'Soybean', 'emoji': '🌱'},
-  '鶏肉': {'en': 'Chicken', 'emoji': '🐔'},
-  'バナナ': {'en': 'Banana', 'emoji': '🍌'},
-  '豚肉': {'en': 'Pork', 'emoji': '🐷'},
-  'まつたけ': {'en': 'Matsutake', 'emoji': '🍄'},
-  'もも': {'en': 'Peach', 'emoji': '🍑'},
-  'やまいも': {'en': 'Yam', 'emoji': '🍠'},
-  'りんご': {'en': 'Apple', 'emoji': '🍎'},
-  'ゼラチン': {'en': 'Gelatin', 'emoji': '🧊'},
-  'マカダミアナッツ': {'en': 'Macadamia', 'emoji': '🌰'},
+  'アーモンド': {'en': 'Almond', 'emoji': '🌰', 'zh': '杏仁'},
+  'あわび': {'en': 'Abalone', 'emoji': '🐚', 'zh': '鲍鱼'},
+  'いか': {'en': 'Squid', 'emoji': '🦑', 'zh': '鱿鱼'},
+  'いくら': {'en': 'Salmon Roe', 'emoji': '🟠', 'zh': '鲑鱼子'},
+  'オレンジ': {'en': 'Orange', 'emoji': '🍊', 'zh': '橙子'},
+  'カシューナッツ': {'en': 'Cashew', 'emoji': '🌰', 'zh': '腰果'},
+  'キウイフルーツ': {'en': 'Kiwi', 'emoji': '🥝', 'zh': '猕猴桃'},
+  '牛肉': {'en': 'Beef', 'emoji': '🐮', 'zh': '牛肉'},
+  'ごま': {'en': 'Sesame', 'emoji': '🌿', 'zh': '芝麻'},
+  'さけ': {'en': 'Salmon', 'emoji': '🐟', 'zh': '三文鱼'},
+  'さば': {'en': 'Mackerel', 'emoji': '🐡', 'zh': '鲭鱼'},
+  '大豆': {'en': 'Soybean', 'emoji': '🌱', 'zh': '大豆'},
+  '鶏肉': {'en': 'Chicken', 'emoji': '🐔', 'zh': '鸡肉'},
+  'バナナ': {'en': 'Banana', 'emoji': '🍌', 'zh': '香蕉'},
+  '豚肉': {'en': 'Pork', 'emoji': '🐷', 'zh': '猪肉'},
+  'まつたけ': {'en': 'Matsutake', 'emoji': '🍄', 'zh': '松茸'},
+  'もも': {'en': 'Peach', 'emoji': '🍑', 'zh': '桃子'},
+  'やまいも': {'en': 'Yam', 'emoji': '🍠', 'zh': '山药'},
+  'りんご': {'en': 'Apple', 'emoji': '🍎', 'zh': '苹果'},
+  'ゼラチン': {'en': 'Gelatin', 'emoji': '🧊', 'zh': '明胶'},
+  'マカダミアナッツ': {'en': 'Macadamia', 'emoji': '🌰', 'zh': '澳洲坚果'},
   // ── EU 追加 ──
-  'セロリ': {'en': 'Celery', 'emoji': '🥬'},
-  'からし': {'en': 'Mustard', 'emoji': '🌿'},
-  '亜硫酸塩': {'en': 'Sulphites', 'emoji': '🧪'},
-  'ルパン': {'en': 'Lupin', 'emoji': '🌸'},
+  'セロリ': {'en': 'Celery', 'emoji': '🥬', 'zh': '芹菜'},
+  'からし': {'en': 'Mustard', 'emoji': '🌿', 'zh': '芥末'},
+  '亜硫酸塩': {'en': 'Sulphites', 'emoji': '🧪', 'zh': '亚硫酸盐'},
+  'ルパン': {'en': 'Lupin', 'emoji': '🌸', 'zh': '羽扇豆'},
   // ── その他・共通 ──
-  '魚類': {'en': 'Fish (general)', 'emoji': '🐟'},
-  'とうもろこし': {'en': 'Corn', 'emoji': '🌽'},
-  '植物油脂': {'en': 'Vegetable Oil (source unspecified)', 'emoji': '🛢️'},
-  'はちみつ': {'en': 'Honey', 'emoji': '🍯'},
+  '魚類': {'en': 'Fish (general)', 'emoji': '🐟', 'zh': '鱼类'},
+  'とうもろこし': {'en': 'Corn', 'emoji': '🌽', 'zh': '玉米'},
+  '植物油脂': {'en': 'Vegetable Oil (source unspecified)', 'emoji': '🛢️', 'zh': '植物油（来源不明）'},
+  'はちみつ': {'en': 'Honey', 'emoji': '🍯', 'zh': '蜂蜜'},
 };
 
 // 植物油関連キーワード（原料が特定できない可能性があるもの）
@@ -81,9 +81,12 @@ const List<String> crossContaminationPhrases = [
 final ValueNotifier<String> appLanguage = ValueNotifier('en'); // 初期値は英語
 
 // 🪄 魔法の翻訳ヘルパー関数
-// 使い方: t('Hello', 'こんにちは') と書くと、設定に合わせて文字が切り替わります！
-String t(String en, String ja) {
-  return appLanguage.value == 'en' ? en : ja;
+String t(String en, String ja, {String? zh}) {
+  return switch (appLanguage.value) {
+    'ja' => ja,
+    'zh' => zh ?? en,
+    _ => en,
+  };
 }
 
 // ---------------------------------------------------------
@@ -200,22 +203,23 @@ Future<bool> showOcrGuideDialog(BuildContext context) async {
         size: 52,
         color: Colors.teal,
       ),
-      title: Text(t('Scan the ingredient label', '原材料表示を撮影')),
+      title: Text(t('Scan the ingredient label', '原材料表示を撮影', zh: '拍摄成分表')),
       content: Text(
         t(
           'Point your camera at the ingredients list on the back of the package. Make sure the text is clearly visible and well-lit.',
           '商品裏面の原材料表示にカメラを向けてください。\n文字がはっきり見えるよう、明るい場所で撮影してください。',
+          zh: '将相机对准包装背面的成分表。\n请在光线充足的环境下拍摄，确保文字清晰可见。',
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: Text(t('Cancel', 'キャンセル')),
+          child: Text(t('Cancel', 'キャンセル', zh: '取消')),
         ),
         ElevatedButton.icon(
           onPressed: () => Navigator.pop(ctx, true),
           icon: const Icon(Icons.camera_alt),
-          label: Text(t('Take Photo', '撮影する')),
+          label: Text(t('Take Photo', '撮影する', zh: '拍照')),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.teal,
             foregroundColor: Colors.white,

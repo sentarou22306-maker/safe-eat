@@ -50,11 +50,15 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   '明示的な同意を得た場合にのみサーバーへ送信されるデータ',
                 )),
                 _bullet(t('Scan date (date only, no time)', 'スキャン日（日付のみ、時刻なし）')),
-                _bullet(t('App language setting (used as a nationality proxy)', 'アプリの言語設定（国籍の参考情報として使用）')),
+                _bullet(t('App language setting', 'アプリの言語設定')),
                 _bullet(t('Your allergen profile (list of allergen names)', 'アレルゲンプロフィール（アレルゲン名のリスト）')),
                 _bullet(t(
                   'Scan source (whether the product was found in our database, Open Food Facts, or via OCR)',
                   'スキャンのソース（自社データベース・Open Food Facts・OCRのいずれか）',
+                )),
+                _bullet(t(
+                  'Age range, gender, and country of origin — only if you entered them in My Profile',
+                  '年代・性別・出身国 — マイプロフィールに入力した場合のみ',
                 )),
                 _body(t(
                   'No name, email address, phone number, location, or device identifier is ever collected. You can opt out at any time in Settings → Privacy.',

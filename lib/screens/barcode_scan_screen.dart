@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../theme_settings.dart';
 import '../services/analytics_service.dart';
+import '../services/rate_limit_service.dart';
 import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
 
 enum ScanMode { fast, accurate }
@@ -72,6 +73,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
           'image_front': productRow['image_url'] ?? '',
           'ingredients': correctedAllergens ??
               List<String>.from(productRow['allergens'] ?? []),
+          '_source': 'db',
         };
         if (_scanMode == ScanMode.accurate) {
           productData['_autoVerify'] = true;
@@ -108,6 +110,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
             'image': p['image_url']?.toString() ?? '',
             'ingredients': correctedAllergens ??
                 (cleanIngredients.isNotEmpty ? [cleanIngredients] : []),
+            '_source': 'ofa',
             if (_scanMode == ScanMode.accurate) '_autoVerify': true,
           };
 
@@ -115,7 +118,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                t('Loaded from global database.', '外部データから取得しました。'),
+                t('Loaded from global database.', '外部データから取得しました。', zh: '已从全球数据库加载。'),
               ),
             ),
           );
@@ -132,15 +135,16 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         t(
           'Not in database. Scanning package label...',
           'データベースにありません。ラベルをスキャンします...',
+          zh: 'データ库中未找到，正在扫描包装标签...',
         ),
       );
       await _scanWithOcr(janCode);
     } on TimeoutException {
       _showSnackBar(
-        t('Connection timeout. Please check your network.', '通信がタイムアウトしました。'),
+        t('Connection timeout. Please check your network.', '通信がタイムアウトしました。', zh: '连接超时，请检查网络。'),
       );
     } on SocketException {
-      _showSnackBar(t('No internet connection.', 'ネットワークに接続できません。'));
+      _showSnackBar(t('No internet connection.', 'ネットワークに接続できません。', zh: '无网络连接。'));
     } catch (e) {
       _showSnackBar(e.toString());
       debugPrint('Error: $e');
@@ -156,6 +160,12 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
 
   Future<void> _scanWithOcr(String janCode) async {
     if (!mounted) return;
+
+    if (!await canRunOcr()) {
+      if (mounted) _showOcrLimitDialog();
+      return;
+    }
+
     final confirmed = await showOcrGuideDialog(context);
     if (!confirmed || !mounted) return;
 
@@ -166,7 +176,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     );
     if (photo == null || !mounted) return;
 
-    _showSnackBar(t('Reading text from image...', '画像からテキストを読み取り中...'));
+    _showSnackBar(t('Reading text from image...', '画像からテキストを読み取り中...', zh: '正在从图像中读取文字...'));
     try {
       OcrResult result;
       if (kIsWeb) {
@@ -176,10 +186,11 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         result = await extractAllergensFromImage(photo.path);
       }
       if (!mounted) return;
+      unawaited(recordOcrUse());
       unawaited(logScanEvent(source: 'ocr'));
       await context.push('/product_detail', extra: {
         'janCode': janCode,
-        'name_jp': t('(OCR Scan Result)', '（OCR読み取り結果）'),
+        'name_jp': t('(OCR Scan Result)', '（OCR読み取り結果）', zh: '（OCR扫描结果）'),
         'name_en': '(OCR Scan Result)',
         'ingredients': result.foundAllergens.toList(),
         '_source': 'ocr',
@@ -188,11 +199,81 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     } catch (e) {
       if (mounted) {
         _showSnackBar(
-          t('Could not read image text.', '画像テキストの読み取りに失敗しました。'),
+          t('Could not read image text.', '画像テキストの読み取りに失敗しました。', zh: '无法读取图像文字。'),
         );
       }
     }
   }
+
+  Future<void> _showOcrLimitDialog() async {
+    final limit = await getDailyOcrLimit();
+    if (!mounted) return;
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(t('Daily OCR Limit Reached', '本日のOCR上限に達しました', zh: '今日OCR次数已达上限')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t(
+                'You have used all $limit OCR scans for today.',
+                '本日のOCR回数（$limit回）を使い切りました。',
+                zh: '您今天已使用全部 $limit 次OCR扫描。',
+              )),
+              const SizedBox(height: 12),
+              Text(
+                t('Set your profile to increase the limit:',
+                    'プロフィールを設定すると上限UP：', zh: '完善资料可提升上限：'),
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              _limitRow(t('Age range', '年代', zh: '年龄段'), '10'),
+              _limitRow(t('+ Gender', '+ 性別', zh: '+ 性别'), '18'),
+              _limitRow(t('+ Country', '+ 出身国', zh: '+ 国籍'), '30'),
+              _limitRow(t('+ Analytics consent', '+ アナリティクス同意', zh: '+ 统计同意'), '+5'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(t('Close', '閉じる', zh: '关闭')),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.push('/settings');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: appThemeColor.value,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(t('Go to Settings', '設定へ', zh: '前往设置')),
+            ),
+          ],
+        ),
+      );
+  }
+
+  Widget _limitRow(String label, String limit) => Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(fontSize: 12, color: Colors.black87)),
+            ),
+            Text(
+              '$limit ${t('scans/day', '回/日', zh: '次/天')}',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.green.shade700,
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      );
 
   void _showSnackBar(String message) {
     if (!mounted) return;
@@ -211,9 +292,9 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _modeChip(ScanMode.fast, Icons.bolt_rounded, t('Fast', '高速'), Colors.amber.shade700),
+        _modeChip(ScanMode.fast, Icons.bolt_rounded, t('Fast', '高速', zh: '快速'), Colors.amber.shade700),
         const SizedBox(width: 4),
-        _modeChip(ScanMode.accurate, Icons.verified_user_rounded, t('Accurate', '精度'), Colors.teal),
+        _modeChip(ScanMode.accurate, Icons.verified_user_rounded, t('Accurate', '精度', zh: '精准'), Colors.teal),
       ],
     );
   }
@@ -256,7 +337,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              t('Scan Barcode', 'バーコードをスキャン'),
+              t('Scan Barcode', 'バーコードをスキャン', zh: '扫描条形码'),
               style: const TextStyle(fontSize: 18),
             ),
             actions: [
@@ -326,6 +407,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                           t(
                             'Manual Input (If camera fails)',
                             '手動入力（カメラが使えない場合）',
+                            zh: '手动输入（相机无法使用时）',
                           ),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -340,6 +422,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                                   hintText: t(
                                     'Enter Barcode (JAN)',
                                     'JANコードを入力',
+                                    zh: '输入条形码（JAN）',
                                   ),
                                   border: const OutlineInputBorder(),
                                   contentPadding: const EdgeInsets.symmetric(
@@ -365,7 +448,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                                 ),
                               ),
                               child: Text(
-                                t('Search', '検索'),
+                                t('Search', '検索', zh: '搜索'),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),

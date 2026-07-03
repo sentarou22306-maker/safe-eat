@@ -11,6 +11,7 @@ import 'screens/allergen_report_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/privacy_policy_screen.dart';
+import 'screens/tos_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -77,6 +78,11 @@ void main() async {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/privacy_policy',
         builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/tos',
+        builder: (context, state) => const TosScreen(),
       ),
     ],
   );
@@ -146,11 +152,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
             items: [
               BottomNavigationBarItem(
                 icon: const Icon(Icons.home),
-                label: t('Home', 'ホーム'),
+                label: t('Home', 'ホーム', zh: '首页'),
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.qr_code_scanner),
-                label: t('Scan', 'スキャン'),
+                label: t('Scan', 'スキャン', zh: '扫描'),
               ),
             ],
             currentIndex: _calculateSelectedIndex(context),
@@ -236,6 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               t(
                                 'No allergens set. Tap to set your profile.',
                                 'アレルゲンが未設定です。タップして設定してください。',
+                                zh: '尚未设置过敏原，点击进行设置。',
                               ),
                               style: TextStyle(
                                 fontSize: 13,
@@ -284,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 24,
                         ),
                         label: Text(
-                          t('Scan Barcode', 'バーコードをスキャン'),
+                          t('Scan Barcode', 'バーコードをスキャン', zh: '扫描条形码'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -327,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           bottom: 16,
                         ),
                         child: Text(
-                          t('Recently Viewed', '最近見たお土産'),
+                          t('Recently Viewed', '最近見たお土産', zh: '最近浏览'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -343,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 if (history.isEmpty) {
                                   return Center(
                                     child: Text(
-                                      t('No history yet.', 'まだ履歴はありません。'),
+                                      t('No history yet.', 'まだ履歴はありません。', zh: '暂无记录。'),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         color: Colors.grey,
@@ -464,6 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   t(
                     'Allergy info is for reference only. Always check the actual product label.',
                     'アレルギー情報は参考用です。必ず商品パッケージの表示をご確認ください。',
+                    zh: '过敏原信息仅供参考，请务必确认实际商品标签。',
                   ),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 10, color: Colors.grey),
