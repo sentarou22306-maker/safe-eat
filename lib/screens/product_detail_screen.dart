@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../theme_settings.dart';
 import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
+import '../services/allergen_detector.dart';
 
 // 🌟変更：StatefulWidgetに進化させました！
 class ProductDetailScreen extends StatefulWidget {
@@ -548,23 +549,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  String? _extractAllergenKey(String ingredient) {
-    if (allergenDictionary.containsKey(ingredient)) return ingredient;
-    for (final key in allergenDictionary.keys) {
-      if (ingredient.contains(key)) return key;
-    }
-    return null;
-  }
-
-  Set<String> _extractAllergenKeys(List<String> ingredients) {
-    final keys = <String>{};
-    for (final ingredient in ingredients) {
-      final key = _extractAllergenKey(ingredient);
-      if (key != null) keys.add(key);
-    }
-    return keys;
-  }
-
   Widget _buildRawIngredientsAccordion(List<String> ingredients) {
     final rawText = ingredients.join(', ');
     return Theme(
@@ -679,7 +663,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     final isDanger = matched.isNotEmpty;
-    return Container(
+    final semanticLabel = isDanger
+        ? 'DANGER: This product contains allergens you are allergic to: ${matched.map((k) => allergenDictionary[k]?['en'] ?? k).join(', ')}'
+        : 'SAFE: No allergens from your profile detected in this product';
+    return Semantics(
+      label: semanticLabel,
+      child: Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -732,6 +721,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -788,7 +778,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               builder: (context, myAllergens, _) {
                 final allAllergens = {...myAllergens, ...customAllergens.value};
                 if (ingredients.isEmpty) return const SizedBox.shrink();
-                final allergenKeys = _extractAllergenKeys(ingredients);
+                final allergenKeys = extractAllergenKeys(ingredients);
                 final matched = allergenKeys
                     .where((k) => allAllergens.contains(k))
                     .toList();
@@ -865,7 +855,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               valueListenable: userAllergens,
               builder: (context, myAllergens, _) {
                 final allMyAllergens = {...myAllergens, ...customAllergens.value};
-                final allergenKeys = _extractAllergenKeys(ingredients);
+                final allergenKeys = extractAllergenKeys(ingredients);
                 final matched = allergenKeys
                     .where((k) => allMyAllergens.contains(k))
                     .toList();
