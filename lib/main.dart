@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'theme_settings.dart';
 
 import 'screens/barcode_scan_screen.dart';
@@ -110,9 +111,15 @@ class MyApp extends StatelessWidget {
                   seedColor: color,
                   primary: color,
                 ),
+                textTheme: GoogleFonts.notoSansJpTextTheme(),
                 appBarTheme: AppBarTheme(
                   backgroundColor: color,
                   foregroundColor: Colors.white,
+                  titleTextStyle: GoogleFonts.notoSansJp(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 bottomNavigationBarTheme: BottomNavigationBarThemeData(
                   selectedItemColor: color,
