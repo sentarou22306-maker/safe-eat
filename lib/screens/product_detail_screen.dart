@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_settings.dart';
 import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
 import '../services/allergen_detector.dart';
@@ -20,6 +21,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   OcrResult? _ocrResult;
   bool _isOcrRunning = false;
   bool _showRawText = false;
+  bool _hasContributed = false;
+  bool _isSubmittingContribution = false;
 
   Future<void> _verifyWithOcr() async {
     final confirmed = await showOcrGuideDialog(context);
@@ -55,6 +58,141 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } finally {
       if (mounted) setState(() => _isOcrRunning = false);
     }
+  }
+
+  Future<void> _submitContribution() async {
+    final janCode = widget.product['janCode']?.toString() ?? '';
+    final allergens = (widget.product['ingredients'] as List?)
+        ?.map((e) => e.toString()).toList() ?? [];
+    final ingredientText = widget.product['_ocrIngredientText']?.toString() ?? '';
+    final preview = ingredientText.length > 200
+        ? ingredientText.substring(0, 200)
+        : ingredientText;
+
+    setState(() => _isSubmittingContribution = true);
+    try {
+      await Supabase.instance.client.from('allergen_corrections').insert({
+        'jan_code': janCode,
+        'allergens': allergens,
+        'note': 'Label scan: $preview',
+        'submitted_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+        'is_approved': false,
+      });
+      if (mounted) setState(() => _hasContributed = true);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(t('Submission failed. Please try again.',
+              '送信に失敗しました。再度お試しください。',
+              zh: '提交失败，请重试。',
+              ko: '제출에 실패했습니다. 다시 시도해 주세요.')),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmittingContribution = false);
+    }
+  }
+
+  Widget _buildContributionCard() {
+    final janCode = widget.product['janCode']?.toString() ?? '';
+    final ingredientText = widget.product['_ocrIngredientText']?.toString() ?? '';
+    if (janCode.isEmpty || janCode == '未登録' || ingredientText.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final allergenCount = (widget.product['ingredients'] as List?)?.length ?? 0;
+
+    if (_hasContributed) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green.shade600, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                t('Thank you! Your contribution is under review.',
+                    '送信しました。確認後に反映されます。',
+                    zh: '感谢您的贡献！审核后将予以反映。',
+                    ko: '감사합니다! 검토 후 반영됩니다.'),
+                style: TextStyle(color: Colors.green.shade700, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.teal.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.volunteer_activism, color: Colors.teal.shade700, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t('Help improve the database',
+                      'データベース改善に協力する',
+                      zh: '帮助改善数据库',
+                      ko: '데이터베이스 개선에 기여'),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal.shade800,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            allergenCount > 0
+                ? t(
+                    'Your label scan found $allergenCount allergen(s). Submit anonymously to help future travelers.',
+                    'ラベルスキャンで$allergenCount種のアレルゲンを検出しました。匿名送信で旅行者を助けましょう。',
+                    zh: '您的标签扫描发现了 $allergenCount 种过敏原。匿名提交，帮助未来的旅行者。',
+                    ko: '라벨 스캔으로 $allergenCount개의 알레르겐을 발견했습니다. 익명으로 제출하여 미래 여행자를 도와주세요.',
+                  )
+                : t(
+                    'No allergens detected on label. Submit to help future travelers.',
+                    'ラベルからアレルゲンは検出されませんでした。送信して旅行者を助けましょう。',
+                    zh: '标签上未检测到过敏原。提交以帮助未来的旅行者。',
+                    ko: '라벨에서 알레르겐이 검출되지 않았습니다. 제출하여 여행자를 도와주세요.',
+                  ),
+            style: TextStyle(fontSize: 12, color: Colors.teal.shade700),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: _isSubmittingContribution ? null : _submitContribution,
+            icon: _isSubmittingContribution
+                ? const SizedBox(
+                    width: 14, height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.cloud_upload_outlined, size: 18),
+            label: Text(t('Submit anonymously', '匿名で送信', zh: '匿名提交', ko: '익명으로 제출')),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 40),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildCrossContaminationCard() {
@@ -1189,6 +1327,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 minimumSize: const Size(double.infinity, 44),
               ),
             ),
+            if (widget.product['_source'] == 'ocr') ...[
+              const SizedBox(height: 12),
+              _buildContributionCard(),
+            ],
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),

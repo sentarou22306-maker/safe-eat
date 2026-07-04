@@ -12,6 +12,7 @@ import '../theme_settings.dart';
 import '../services/analytics_service.dart';
 import '../services/rate_limit_service.dart';
 import '../services/ocr_service.dart' show OcrResult, extractAllergensFromImage, extractAllergensFromImageBytes;
+import '../services/allergen_detector.dart';
 
 enum ScanMode { fast, accurate }
 
@@ -123,6 +124,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
               ),
             ),
           );
+          unawaited(_autoSaveOFAProduct(janCode, apiProduct));
           unawaited(logScanEvent(source: 'ofa'));
           await context.push('/product_detail', extra: apiProduct);
           return;
@@ -160,6 +162,27 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         });
       }
     }
+  }
+
+  /// OFA で取得した商品を自社DBに未承認として自動保存する。
+  /// 管理者が承認するだけでDB拡充される crowdsourcing の基盤。
+  Future<void> _autoSaveOFAProduct(String janCode, Map<String, dynamic> product) async {
+    try {
+      final ingredients = (product['ingredients'] as List?)
+          ?.expand((e) => e.toString().replaceAll('、', ',').split(','))
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList() ?? [];
+      final allergenKeys = extractAllergenKeys(ingredients).toList();
+      await Supabase.instance.client.from('products').insert({
+        'jan_code': janCode,
+        'name_jp': product['name_jp'] ?? '',
+        'name_en': product['name_en'] ?? '',
+        'image_url': product['image'] ?? '',
+        'allergens': allergenKeys,
+        'is_approved': false,
+      });
+    } catch (_) {} // 重複・RLSエラーは無視（ベストエフォート）
   }
 
   Future<void> _scanWithOcr(String janCode) async {
