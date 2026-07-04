@@ -84,6 +84,24 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         return;
       }
 
+      // productテーブルにないが承認済み訂正データがある場合（管理者承認後に即反映）
+      if (correctionRow != null) {
+        final productData = <String, dynamic>{
+          'janCode': janCode,
+          'name_jp': 'JAN: $janCode',
+          'name_en': '',
+          'image_front': '',
+          'ingredients': List<String>.from(correctionRow['allergens'] ?? []),
+          '_source': 'db',
+        };
+        if (_scanMode == ScanMode.accurate) {
+          productData['_autoVerify'] = true;
+        }
+        unawaited(logScanEvent(source: 'db'));
+        await context.push('/product_detail', extra: productData);
+        return;
+      }
+
       // OFA API にフォールバック
       final url = Uri.parse(
         'https://world.openfoodfacts.org/api/v0/product/$janCode.json',

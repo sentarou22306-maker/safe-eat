@@ -33,3 +33,11 @@ Future<void> recordOcrUse() async {
   final key = _todayKey();
   await prefs.setInt(key, (prefs.getInt(key) ?? 0) + 1);
 }
+
+// 貢献送信時にスキャン1回分を返金する
+Future<void> refundOcrUse() async {
+  final prefs = await SharedPreferences.getInstance();
+  final key = _todayKey();
+  final current = prefs.getInt(key) ?? 0;
+  if (current > 0) await prefs.setInt(key, current - 1);
+}
