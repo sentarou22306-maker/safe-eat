@@ -14,6 +14,7 @@ import 'screens/settings_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/privacy_policy_screen.dart';
 import 'screens/tos_screen.dart';
+import 'screens/admin_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -30,6 +31,7 @@ void main() async {
   await loadGlobalHistory();
   await loadUserAllergens();
   await loadCustomAllergens();
+  await loadDietaryPrefs();
 
   final prefs = await SharedPreferences.getInstance();
   final onboardingDone = prefs.getBool('onboarding_done') ?? false;
@@ -85,6 +87,11 @@ void main() async {
         parentNavigatorKey: _rootNavigatorKey,
         path: '/tos',
         builder: (context, state) => const TosScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/admin',
+        builder: (context, state) => const AdminScreen(),
       ),
     ],
   );

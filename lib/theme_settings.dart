@@ -102,6 +102,12 @@ final ValueNotifier<Color> appThemeColor = ValueNotifier(Colors.green);
 final ValueNotifier<Set<String>> userAllergens = ValueNotifier({});
 final ValueNotifier<Set<String>> customAllergens = ValueNotifier({});
 
+// 食事制限プロファイル（プリセット選択 + カスタマイズ）
+final ValueNotifier<Set<String>> activeDietaryPresets = ValueNotifier({});
+// 除外カテゴリ: 'presetKey:categoryKey' 形式の文字列セット
+final ValueNotifier<Set<String>> removedDietaryCategories = ValueNotifier({});
+final ValueNotifier<Set<String>> addedDietaryKeywords = ValueNotifier({});
+
 Future<void> loadAppSettings() async {
   final prefs = await SharedPreferences.getInstance();
   appLanguage.value = prefs.getString('app_language') ?? 'en';
@@ -133,6 +139,34 @@ Future<void> saveUserAllergens(Set<String> allergens) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setStringList('user_allergens', allergens.toList());
   userAllergens.value = Set.from(allergens);
+}
+
+Future<void> loadDietaryPrefs() async {
+  final prefs = await SharedPreferences.getInstance();
+  activeDietaryPresets.value =
+      (prefs.getStringList('active_dietary_presets') ?? []).toSet();
+  removedDietaryCategories.value =
+      (prefs.getStringList('removed_dietary_categories') ?? []).toSet();
+  addedDietaryKeywords.value =
+      (prefs.getStringList('added_dietary_keywords') ?? []).toSet();
+}
+
+Future<void> saveActiveDietaryPresets(Set<String> presets) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('active_dietary_presets', presets.toList());
+  activeDietaryPresets.value = Set.from(presets);
+}
+
+Future<void> saveRemovedDietaryCategories(Set<String> removed) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('removed_dietary_categories', removed.toList());
+  removedDietaryCategories.value = Set.from(removed);
+}
+
+Future<void> saveAddedDietaryKeywords(Set<String> added) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('added_dietary_keywords', added.toList());
+  addedDietaryKeywords.value = Set.from(added);
 }
 
 Future<void> loadCustomAllergens() async {
