@@ -171,11 +171,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
             items: [
               BottomNavigationBarItem(
                 icon: const Icon(Icons.home),
-                label: t('Home', 'ホーム', zh: '首页'),
+                label: t('Home', 'ホーム', zh: '首页', ko: '홈'),
               ),
               BottomNavigationBarItem(
                 icon: const Icon(Icons.qr_code_scanner),
-                label: t('Scan', 'スキャン', zh: '扫描'),
+                label: t('Scan', 'スキャン', zh: '扫描', ko: '스캔'),
               ),
             ],
             currentIndex: _calculateSelectedIndex(context),
@@ -262,6 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'No allergens set. Tap to set your profile.',
                                 'アレルゲンが未設定です。タップして設定してください。',
                                 zh: '尚未设置过敏原，点击进行设置。',
+                                ko: '알레르겐이 미설정입니다. 탭하여 설정하세요.',
                               ),
                               style: TextStyle(
                                 fontSize: 13,
@@ -310,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 24,
                         ),
                         label: Text(
-                          t('Scan Barcode', 'バーコードをスキャン', zh: '扫描条形码'),
+                          t('Scan Barcode', 'バーコードをスキャン', zh: '扫描条形码', ko: '바코드 스캔'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -353,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           bottom: 16,
                         ),
                         child: Text(
-                          t('Recently Viewed', '最近見た商品', zh: '最近浏览'),
+                          t('Recently Viewed', '最近見た商品', zh: '最近浏览', ko: '최근 본 상품'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -369,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 if (history.isEmpty) {
                                   return Center(
                                     child: Text(
-                                      t('No history yet.', 'まだ履歴はありません。', zh: '暂无记录。'),
+                                      t('No history yet.', 'まだ履歴はありません。', zh: '暂无记录。', ko: '아직 기록이 없습니다.'),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         color: Colors.grey,
@@ -491,6 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Allergy info is for reference only. Always check the actual product label.',
                     'アレルギー情報は参考用です。必ず商品パッケージの表示をご確認ください。',
                     zh: '过敏原信息仅供参考，请务必确认实际商品标签。',
+                    ko: '알레르기 정보는 참고용입니다. 반드시 실제 상품 라벨을 확인하세요.',
                   ),
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 10, color: Colors.grey),

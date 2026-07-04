@@ -63,7 +63,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: Text(t('Take a photo', 'カメラで撮影', zh: '拍照')),
+              title: Text(t('Take a photo', 'カメラで撮影', zh: '拍照', ko: '사진 촬영')),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera);
@@ -71,7 +71,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: Text(t('Choose from gallery', 'ギャラリーから選択', zh: '从相册选择')),
+              title: Text(t('Choose from gallery', 'ギャラリーから選択', zh: '从相册选择', ko: '갤러리에서 선택')),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
@@ -130,12 +130,12 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
   Future<void> _submit() async {
     final janCode = _janCodeController.text.trim();
     if (janCode.isEmpty) {
-      _showSnackBar(t('Please enter a barcode.', 'バーコードを入力してください。', zh: '请输入条形码。'));
+      _showSnackBar(t('Please enter a barcode.', 'バーコードを入力してください。', zh: '请输入条形码。', ko: '바코드를 입력해 주세요.'));
       return;
     }
     if (_selectedAllergens.isEmpty) {
       _showSnackBar(
-        t('Select at least one allergen.', 'アレルゲンを1つ以上選択してください。', zh: '请至少选择一种过敏原。'),
+        t('Select at least one allergen.', 'アレルゲンを1つ以上選択してください。', zh: '请至少选择一种过敏原。', ko: '알레르겐을 한 개 이상 선택해 주세요.'),
       );
       return;
     }
@@ -166,14 +166,14 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            t('Report submitted. Thank you!', '報告を受け付けました。ありがとうございます！', zh: '报告已提交，谢谢！'),
+            t('Report submitted. Thank you!', '報告を受け付けました。ありがとうございます！', zh: '报告已提交，谢谢！', ko: '보고가 접수되었습니다. 감사합니다！'),
           ),
           backgroundColor: Colors.green,
         ),
       );
       Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) _showSnackBar(t('Error: $e', 'エラー: $e', zh: '错误：$e'));
+      if (mounted) _showSnackBar(t('Error: $e', 'エラー: $e', zh: '错误：$e', ko: '오류: $e'));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -225,7 +225,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
       builder: (context, lang, _) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(t('Report Allergen Issue', 'アレルゲン情報を訂正', zh: '报告过敏原问题')),
+            title: Text(t('Report Allergen Issue', 'アレルゲン情報を訂正', zh: '报告过敏原问题', ko: '알레르겐 정보 수정')),
             actions: [buildGlobalSettingsButton(context)],
           ),
           body: SingleChildScrollView(
@@ -250,6 +250,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                             'If the allergen information is incorrect or missing, please report it here. Your report will be reviewed before being published.',
                             'アレルゲン情報に誤りや不足がある場合はこちらから報告してください。審査後に反映されます。',
                             zh: '如果过敏原信息有误或缺失，请在此处报告。您的报告将经审核后发布。',
+                            ko: '알레르겐 정보에 오류나 누락이 있는 경우 여기서 보고해 주세요. 검토 후 반영됩니다.',
                           ),
                           style: TextStyle(
                             color: Colors.blue.shade700,
@@ -265,7 +266,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                 TextField(
                   controller: _janCodeController,
                   decoration: InputDecoration(
-                    labelText: t('Barcode / JAN', 'バーコード / JANコード', zh: '条形码 / JAN'),
+                    labelText: t('Barcode / JAN', 'バーコード / JANコード', zh: '条形码 / JAN', ko: '바코드 / JAN'),
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.qr_code),
                     suffixIcon: IconButton(
@@ -300,6 +301,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                     'Allergens contained in this product',
                     'この商品に含まれるアレルゲン',
                     zh: '该商品含有的过敏原',
+                    ko: '이 제품에 포함된 알레르겐',
                   ),
                   style: const TextStyle(
                     fontSize: 16,
@@ -338,11 +340,12 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                 TextField(
                   controller: _noteController,
                   decoration: InputDecoration(
-                    labelText: t('Note (Optional)', '備考（任意）', zh: '备注（可选）'),
+                    labelText: t('Note (Optional)', '備考（任意）', zh: '备注（可选）', ko: '비고（선택사항）'),
                     hintText: t(
                       'e.g. Not listed on package',
                       '例：パッケージに記載なし',
                       zh: '例如：包装上未标注',
+                      ko: '예: 포장에 표시 없음',
                     ),
                     border: const OutlineInputBorder(),
                   ),
@@ -353,7 +356,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
 
                 // 写真セクション
                 Text(
-                  t('Photo (Optional)', '写真（任意）', zh: '照片（可选）'),
+                  t('Photo (Optional)', '写真（任意）', zh: '照片（可选）', ko: '사진（선택사항）'),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -379,7 +382,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                         }),
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     label: Text(
-                      t('Remove photo', '写真を削除', zh: '删除照片'),
+                      t('Remove photo', '写真を削除', zh: '删除照片', ko: '사진 삭제'),
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
@@ -388,7 +391,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                     onPressed: _showImageSourceDialog,
                     icon: const Icon(Icons.add_a_photo_outlined),
                     label: Text(
-                      t('Add photo of package label', '商品ラベルの写真を追加', zh: '添加商品标签照片'),
+                      t('Add photo of package label', '商品ラベルの写真を追加', zh: '添加商品标签照片', ko: '상품 라벨 사진 추가'),
                     ),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 48),
@@ -403,6 +406,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                       'A photo helps admins verify the information.',
                       '写真があると管理者が内容を確認しやすくなります。',
                       zh: '照片有助于管理员核实信息。',
+                      ko: '사진이 있으면 관리자가 내용을 확인하기 쉽습니다.',
                     ),
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
@@ -422,7 +426,7 @@ class _AllergenReportScreenState extends State<AllergenReportScreen> {
                     child: _isSubmitting
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            t('Submit Report', '報告を送信', zh: '提交报告'),
+                            t('Submit Report', '報告を送信', zh: '提交报告', ko: '보고 제출'),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

@@ -81,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  t('Important Notice', '重要なご注意', zh: '重要提示'),
+                  t('Important Notice', '重要なご注意', zh: '重要提示', ko: '중요 안내'),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -99,6 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
                       'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
                       zh: '本应用提供的过敏原信息仅供参考，不保证100%准确或最新。\n\n食用前请务必确认实际商品包装上的标注。严重过敏人群请勿仅依赖本应用。',
+                      ko: '이 앱이 제공하는 알레르겐 정보는 참고용이며 100% 정확하거나 최신임을 보장하지 않습니다.\n\n드시기 전에 반드시 실제 상품 포장의 표시를 확인하세요. 중증 알레르기가 있으신 분은 이 앱에만 의존하지 마세요.',
                     ),
                     style: const TextStyle(
                       fontSize: 13,
@@ -124,6 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         'Share anonymous scan statistics',
                         '匿名のスキャン統計を共有する',
                         zh: '共享匿名扫描统计',
+                        ko: '익명 스캔 통계 공유',
                       ),
                       style: const TextStyle(
                         fontSize: 13,
@@ -135,6 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         'No personal info included. Helps improve the app.',
                         '個人情報は含まれません。アプリ改善に役立てます。',
                         zh: '不含个人信息，用于改善应用。',
+                        ko: '개인정보는 포함되지 않습니다. 앱 개선에 활용됩니다.',
                       ),
                       style: const TextStyle(fontSize: 11),
                     ),
@@ -154,7 +157,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     child: Text(
-                      t('I Understand — Get Started 🚀', '理解しました — 始める 🚀', zh: '我已了解 — 开始使用 🚀'),
+                      t('I Understand — Get Started 🚀', '理解しました — 始める 🚀',
+                          zh: '我已了解 — 开始使用 🚀', ko: '이해했습니다 — 시작하기 🚀'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -243,9 +247,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 style: TextStyle(fontSize: 13, color: Colors.white70),
               ),
               Text(
-                '日本での食の安全をサポート',
+                '日本での食の安全をサポート  /  일본 여행자를 위한 식품 안전 앱',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.white70),
+                style: TextStyle(fontSize: 12, color: Colors.white70),
               ),
             ],
           ),
@@ -257,9 +261,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choose your language / 言語を選んでください / 请选择语言',
+                  'Choose your language / 言語を選んでください / 请选择语言 / 언어를 선택하세요',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey.shade700,
                   ),
@@ -270,8 +274,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Expanded(child: _langButton('English', 'en')),
                     const SizedBox(width: 8),
                     Expanded(child: _langButton('日本語', 'ja')),
-                    const SizedBox(width: 8),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
                     Expanded(child: _langButton('中文', 'zh')),
+                    const SizedBox(width: 8),
+                    Expanded(child: _langButton('한국어', 'ko')),
                   ],
                 ),
               ],
@@ -281,7 +291,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
           child: _primaryButton(
-            t('Choose My Allergens', 'アレルゲンを選ぶ', zh: '选择过敏原'),
+            t('Choose My Allergens', 'アレルゲンを選ぶ', zh: '选择过敏原', ko: '알레르겐 선택'),
             _nextPage,
           ),
         ),
@@ -342,7 +352,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                t('Select your allergens', 'アレルゲンを選択してください', zh: '选择您的过敏原'),
+                t('Select your allergens', 'アレルゲンを選択してください', zh: '选择您的过敏原',
+                    ko: '알레르겐을 선택하세요'),
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -355,6 +366,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   'You will be warned when a product contains them.\nYou can change this anytime in Settings.',
                   '商品に含まれる場合に警告が表示されます。\n設定からいつでも変更できます。',
                   zh: '检测到过敏原时会发出警告。\n可随时在设置中更改。',
+                  ko: '제품에 포함된 경우 경고가 표시됩니다.\n설정에서 언제든지 변경할 수 있습니다.',
                 ),
                 style: const TextStyle(fontSize: 13, color: Colors.grey),
               ),
@@ -433,7 +445,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: _primaryButton(
-            t('Review & Start', '確認して始める', zh: '确认并开始'),
+            t('Review & Start', '確認して始める', zh: '确认并开始', ko: '확인 후 시작'),
             _nextPage,
           ),
         ),

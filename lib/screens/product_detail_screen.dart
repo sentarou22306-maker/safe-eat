@@ -380,11 +380,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       borderColor = Colors.grey.shade300;
       icon = Icons.camera_alt_outlined;
       iconColor = Colors.grey.shade600;
-      headline = t('Could not read any text', 'テキストを読み取れませんでした', zh: '无法读取任何文字');
+      headline = t('Could not read any text', 'テキストを読み取れませんでした', zh: '无法读取任何文字', ko: '텍스트를 읽을 수 없었습니다');
       subtext = t(
         'Hold the camera still, ensure good lighting, and aim directly at the ingredient list.',
         'カメラをしっかり固定し、明るい場所で原材料表示の部分を真正面から撮影してください。',
         zh: '请保持相机稳定，在光线充足的环境下，正对成分表进行拍摄。',
+        ko: '카메라를 안정적으로 잡고 밝은 곳에서 성분표를 정면으로 촬영해 주세요.',
       );
     } else if (!hasAllergens) {
       cardColor = Colors.green.shade50;
@@ -395,6 +396,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         'No allergens from your profile detected',
         'あなたのアレルゲンは検出されませんでした',
         zh: '未检测到您档案中的过敏原',
+        ko: '프로필의 알레르겐이 검출되지 않았습니다',
       );
       subtext = t(
         'The label was read successfully. Tap below to verify the scanned text matches the ingredient list.',
@@ -406,7 +408,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       borderColor = Colors.red.shade200;
       icon = Icons.warning_amber_rounded;
       iconColor = Colors.red.shade700;
-      headline = t('Allergens detected on label', 'ラベルからアレルゲンを検出しました', zh: '标签上检测到过敏原');
+      headline = t('Allergens detected on label', 'ラベルからアレルゲンを検出しました', zh: '标签上检测到过敏原', ko: '라벨에서 알레르겐이 검출되었습니다');
       subtext = t(
         'Tap below to verify the full scanned text.',
         '以下で読み取ったテキスト全文を確認できます。',
@@ -692,6 +694,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     'Register allergens to see if this product is safe for you.',
                     'アレルゲンを登録すると、この商品の安全判定ができます。',
                     zh: '注册过敏原，即可查看该商品是否适合您。',
+                    ko: '알레르겐을 등록하면 이 제품이 안전한지 확인할 수 있습니다.',
                   ),
                   style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
                 ),
@@ -730,7 +733,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        t('⚠ DANGER  危険', '⚠ 危険  DANGER', zh: '⚠ 危险  DANGER'),
+                        t('⚠ DANGER  危険', '⚠ 危険  DANGER', zh: '⚠ 危险  DANGER', ko: '⚠ 위험  DANGER'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -752,7 +755,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ],
                   )
                 : Text(
-                    t('✓ SAFE — No matched allergens', '✓ 安全 — 登録アレルゲンは含まれていません', zh: '✓ 安全 — 未检测到过敏原'),
+                    t('✓ SAFE — No matched allergens', '✓ 安全 — 登録アレルゲンは含まれていません', zh: '✓ 安全 — 未检测到过敏原', ko: '✓ 안전 — 등록된 알레르겐 미검출'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -803,7 +806,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
         title: Text(
-          t('Details', '商品詳細', zh: '商品详情'),
+          t('Details', '商品詳細', zh: '商品详情', ko: '상품 상세'),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [buildGlobalSettingsButton(context)],
@@ -971,7 +974,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  t('Allergens', 'アレルギー情報', zh: '过敏原信息'),
+                                  t('Allergens', 'アレルギー情報', zh: '过敏原信息', ko: '알레르겐 정보'),
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -988,6 +991,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     'No allergen data registered for this product.',
                                     'この商品のアレルゲン情報はまだ登録されていません。',
                                     zh: '该商品暂无过敏原数据。',
+                                    ko: '이 제품의 알레르겐 정보가 아직 등록되어 있지 않습니다.',
                                   ),
                                   style: const TextStyle(color: Colors.grey),
                                 ),
@@ -1011,6 +1015,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       'Scan label for allergen info',
                                       'ラベルをスキャンしてアレルゲンを確認する',
                                       zh: '扫描标签获取过敏原信息',
+                                      ko: '라벨을 스캔하여 알레르겐 확인',
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -1168,9 +1173,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               onPressed: () =>
                   context.push('/allergen_report', extra: janCode),
               icon: const Icon(Icons.flag_outlined, color: Colors.grey),
-              label: const Text(
-                'Report Allergen Issue / アレルゲン情報を訂正',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+              label: Text(
+                t('Report Allergen Issue', 'アレルゲン情報を訂正',
+                    zh: '纠正过敏原信息', ko: '알레르겐 정보 수정'),
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.grey),
@@ -1189,25 +1195,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Row(
                     children: [
-                      Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                      SizedBox(width: 8),
+                      const Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                      const SizedBox(width: 8),
                       Text(
-                        'Disclaimer / 免責事項',
-                        style: TextStyle(
+                        t('Disclaimer', '免責事項', zh: '免责声明', ko: '면책사항'),
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'The allergy information provided is for reference only and may not be 100% accurate or up to date. Please ALWAYS check the actual product packaging before consumption.\n\n'
-                    '提供されるアレルギー情報は参考用であり、正確性や最新性を保証しません。お召し上がり前に必ず商品パッケージの表示をご確認ください。',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    t(
+                      'The allergy information provided is for reference only and may not be 100% accurate or up to date. Please ALWAYS check the actual product packaging before consumption.',
+                      '提供されるアレルギー情報は参考用であり、正確性や最新性を保証しません。お召し上がり前に必ず商品パッケージの表示をご確認ください。',
+                      zh: '所提供的过敏原信息仅供参考，不保证100%准确或最新。食用前请务必确认实际商品包装上的标注。',
+                      ko: '제공되는 알레르기 정보는 참고용이며 100% 정확하거나 최신임을 보장하지 않습니다. 드시기 전에 반드시 실제 상품 포장의 표시를 확인하세요.',
+                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),

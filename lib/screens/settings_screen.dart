@@ -63,9 +63,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t(
-            '🎉 OCR limit increased to $limit scans/day!',
-            '🎉 OCR上限が$limit回/日になりました！',
-            zh: '🎉 OCR上限已提升至每日 $limit 次！',
+            '🎉 Label scan limit increased to $limit / day!',
+            '🎉 スキャン上限が$limit回/日になりました！',
+            zh: '🎉 扫描上限已提升至每日 $limit 次！',
+            ko: '🎉 라벨 스캔 상한이 하루 $limit 회로 늘었습니다！',
           )),
           backgroundColor: Colors.green.shade700,
           behavior: SnackBarBehavior.floating,
@@ -94,6 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             'Tap to select. You will be warned when a product contains them.',
             'タップして選択してください。商品に含まれる場合に警告が表示されます。',
             zh: '点击选择过敏原，检测到时会发出警告。',
+            ko: '탭하여 선택하세요. 제품에 포함된 경우 경고가 표시됩니다.',
           ),
           style: const TextStyle(fontSize: 13, color: Colors.grey),
         ),
@@ -108,7 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             Icon(Icons.add_circle_outline, color: appThemeColor.value, size: 22),
             const SizedBox(width: 8),
             Text(
-              t('Custom Allergens', 'カスタムアレルゲン', zh: '自定义过敏原'),
+              t('Custom Allergens', 'カスタムアレルゲン', zh: '自定义过敏原', ko: '맞춤 알레르겐'),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ],
@@ -119,6 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             'Add allergens not listed above.',
             'リストにないアレルゲンを追加できます。',
             zh: '添加列表中没有的过敏原。',
+            ko: '위 목록에 없는 알레르겐을 추가하세요.',
           ),
           style: const TextStyle(fontSize: 13, color: Colors.grey),
         ),
@@ -156,6 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             'e.g. Pistachio, Pine nut',
                             '例: ピスタチオ、松の実',
                             zh: '例如：开心果、松仁',
+                            ko: '예: 피스타치오, 잣',
                           ),
                           border: const OutlineInputBorder(),
                           isDense: true,
@@ -174,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                       ),
-                      child: Text(t('Add', '追加', zh: '添加')),
+                      child: Text(t('Add', '追加', zh: '添加', ko: '추가')),
                     ),
                   ],
                 ),
@@ -273,13 +277,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      t('Daily OCR limit', 'OCRスキャン上限', zh: '每日OCR上限'),
+                      t('Daily label scan limit', 'ラベルスキャン上限', zh: '每日标签扫描上限', ko: '하루 라벨 스캔 상한'),
                       style: TextStyle(
                           fontSize: 12, color: Colors.green.shade700),
                     ),
                     Text(
                       t('$_ocrLimit scans / day', '$_ocrLimit 回 / 日',
-                          zh: '$_ocrLimit 次 / 天'),
+                          zh: '$_ocrLimit 次 / 天', ko: '하루 $_ocrLimit 회'),
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -295,26 +299,27 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(height: 8),
         Text(
           t(
-            'Fill in more attributes to increase your daily OCR limit.',
-            '項目を埋めるほどOCRスキャン上限が増えます。',
-            zh: '填写越多，每日OCR扫描上限越高。',
+            'Fill in more attributes to increase your daily label scan limit.',
+            '項目を埋めるほどスキャン上限が増えます。',
+            zh: '填写越多，每日扫描上限越高。',
+            ko: '항목을 더 입력할수록 하루 스캔 상한이 늘어납니다.',
           ),
           style: const TextStyle(fontSize: 13, color: Colors.grey),
         ),
         const Divider(height: 32, thickness: 1),
-        Text(t('Age range', '年代', zh: '年龄段'),
+        Text(t('Age range', '年代', zh: '年龄段', ko: '연령대'),
             style:
                 const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         _buildAgeChips(),
         const SizedBox(height: 20),
-        Text(t('Gender', '性別', zh: '性别'),
+        Text(t('Gender', '性別', zh: '性别', ko: '성별'),
             style:
                 const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         _buildGenderChips(),
         const SizedBox(height: 20),
-        Text(t('Country of origin', '出身国', zh: '国籍'),
+        Text(t('Country of origin', '出身国', zh: '国籍', ko: '출신 국가'),
             style:
                 const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
@@ -325,6 +330,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               'e.g. South Korea, France',
               '例: 韓国、フランス',
               zh: '例如：韩国、法国',
+              ko: '예: 한국, 프랑스',
             ),
             border: const OutlineInputBorder(),
             isDense: true,
@@ -355,6 +361,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     const labelsEn = ['10s', '20s', '30s', '40s', '50s', '60s+'];
     const labelsJa = ['10代', '20代', '30代', '40代', '50代', '60代以上'];
     const labelsZh = ['10多岁', '20多岁', '30多岁', '40多岁', '50多岁', '60岁以上'];
+    const labelsKo = ['10대', '20대', '30대', '40대', '50대', '60대 이상'];
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -363,6 +370,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         final label = switch (appLanguage.value) {
           'ja' => labelsJa[i],
           'zh' => labelsZh[i],
+          'ko' => labelsKo[i],
           _ => labelsEn[i],
         };
         final isSelected = _ageRange == val;
@@ -398,6 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     const labelsEn = ['Male', 'Female', 'Other', 'Prefer not to say'];
     const labelsJa = ['男性', '女性', 'その他', '回答しない'];
     const labelsZh = ['男', '女', '其他', '不愿透露'];
+    const labelsKo = ['남성', '여성', '기타', '비공개'];
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -406,6 +415,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         final label = switch (appLanguage.value) {
           'ja' => labelsJa[i],
           'zh' => labelsZh[i],
+          'ko' => labelsKo[i],
           _ => labelsEn[i],
         };
         final isSelected = _gender == val;
@@ -442,23 +452,24 @@ class _SettingsScreenState extends State<SettingsScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _sectionHeader(t('Language', '言語', zh: '语言'), Icons.language),
+        _sectionHeader(t('Language', '言語', zh: '语言', ko: '언어'), Icons.language),
         const SizedBox(height: 4),
         ValueListenableBuilder<String>(
           valueListenable: appLanguage,
-          builder: (context, lang, _) => Row(
+          builder: (context, lang, _) => Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Expanded(child: _langButton('English', 'en', lang)),
-              const SizedBox(width: 8),
-              Expanded(child: _langButton('日本語', 'ja', lang)),
-              const SizedBox(width: 8),
-              Expanded(child: _langButton('中文', 'zh', lang)),
+              _langButton('English', 'en', lang),
+              _langButton('日本語', 'ja', lang),
+              _langButton('中文', 'zh', lang),
+              _langButton('한국어', 'ko', lang),
             ],
           ),
         ),
         const Divider(height: 40, thickness: 1),
         _sectionHeader(
-            t('Text Size', '文字サイズ', zh: '文字大小'), Icons.text_fields),
+            t('Text Size', '文字サイズ', zh: '文字大小', ko: '글자 크기'), Icons.text_fields),
         ValueListenableBuilder<double>(
           valueListenable: appTextScale,
           builder: (context, scale, _) => Slider(
@@ -473,7 +484,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         const Divider(height: 40, thickness: 1),
         _sectionHeader(
-            t('Theme Color', 'テーマカラー', zh: '主题颜色'), Icons.palette),
+            t('Theme Color', 'テーマカラー', zh: '主题颜色', ko: '테마 색상'), Icons.palette),
         const SizedBox(height: 8),
         ValueListenableBuilder<Color>(
           valueListenable: appThemeColor,
@@ -491,7 +502,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         const Divider(height: 40, thickness: 1),
         _sectionHeader(
-            t('Privacy', 'プライバシー', zh: '隐私'), Icons.privacy_tip_outlined),
+            t('Privacy', 'プライバシー', zh: '隐私', ko: '개인정보'), Icons.privacy_tip_outlined),
         SwitchListTile(
           value: _analyticsConsent,
           onChanged: (v) async {
@@ -502,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           activeThumbColor: appThemeColor.value,
           title: Text(
             t('Share anonymous scan statistics', '匿名のスキャン統計を共有する',
-                zh: '共享匿名扫描统计'),
+                zh: '共享匿名扫描统计', ko: '익명 스캔 통계 공유'),
             style: const TextStyle(fontSize: 14),
           ),
           subtitle: Text(
@@ -510,6 +521,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               'No personal info included. Helps improve allergen coverage.',
               '個人情報は含まれません。アレルゲン情報の改善に役立てます。',
               zh: '不含个人信息，用于改善过敏原覆盖范围。',
+              ko: '개인정보는 포함되지 않습니다. 알레르겐 정보 개선에 활용됩니다.',
             ),
             style: const TextStyle(fontSize: 12),
           ),
@@ -520,7 +532,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.article_outlined, color: Colors.grey),
           title: Text(
-            t('Privacy Policy', 'プライバシーポリシー', zh: '隐私政策'),
+            t('Privacy Policy', 'プライバシーポリシー', zh: '隐私政策', ko: '개인정보 처리방침'),
             style: const TextStyle(fontSize: 14),
           ),
           trailing: const Icon(Icons.chevron_right, color: Colors.grey),
@@ -530,7 +542,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.gavel_outlined, color: Colors.grey),
           title: Text(
-            t('Terms of Service', '利用規約', zh: '服务条款'),
+            t('Terms of Service', '利用規約', zh: '服务条款', ko: '이용약관'),
             style: const TextStyle(fontSize: 14),
           ),
           trailing: const Icon(Icons.chevron_right, color: Colors.grey),
@@ -601,7 +613,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       builder: (context, lang, _) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(t('Settings', '設定', zh: '设置')),
+            title: Text(t('Settings', '設定', zh: '设置', ko: '설정')),
             bottom: TabBar(
               controller: _tabController,
               indicatorColor: Colors.white,
@@ -610,15 +622,15 @@ class _SettingsScreenState extends State<SettingsScreen>
               tabs: [
                 Tab(
                   icon: const Icon(Icons.warning_amber_rounded),
-                  text: t('Allergens', 'アレルゲン', zh: '过敏原'),
+                  text: t('Allergens', 'アレルゲン', zh: '过敏原', ko: '알레르겐'),
                 ),
                 Tab(
                   icon: const Icon(Icons.person_outline),
-                  text: t('Profile', 'プロフィール', zh: '档案'),
+                  text: t('Profile', 'プロフィール', zh: '档案', ko: '프로필'),
                 ),
                 Tab(
                   icon: const Icon(Icons.tune),
-                  text: t('Display', '表示', zh: '显示'),
+                  text: t('Display', '表示', zh: '显示', ko: '표시'),
                 ),
               ],
             ),
@@ -626,7 +638,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.check),
-            label: Text(t('Done', '完了', zh: '完成')),
+            label: Text(t('Done', '完了', zh: '完成', ko: '완료')),
             backgroundColor: appThemeColor.value,
             foregroundColor: Colors.white,
           ),
