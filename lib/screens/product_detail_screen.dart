@@ -242,9 +242,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 const SizedBox(height: 6),
                 Text(
                   t(
-                    '⚠️ OCR may not detect all text accurately. Always check the actual label.',
-                    '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。必ず実際のラベルをご確認ください。',
-                    zh: '⚠️ OCR识别结果可能不完全准确，请务必查看实际标签。',
+                    '⚠️ Label scanning may miss some text. Always check the actual label.',
+                    '⚠️ ラベルスキャンはすべてのテキストを正確に読み取れない場合があります。必ず実際のラベルをご確認ください。',
+                    zh: '⚠️ 标签扫描可能无法完全识别所有文字，请务必查看实际标签。',
+                    ko: '⚠️ 라벨 스캔은 일부 텍스트를 놓칠 수 있습니다. 반드시 실제 라벨을 확인하세요.',
                   ),
                   style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
                 ),
@@ -346,9 +347,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 6),
               Text(
                 t(
-                  '⚠️ OCR may not detect all text accurately.',
-                  '⚠️ OCRはすべてのテキストを正確に読み取れない場合があります。',
-                  zh: '⚠️ OCR识别结果可能不完全准确。',
+                  '⚠️ Label scanning may miss some text.',
+                  '⚠️ ラベルスキャンはすべてのテキストを正確に読み取れない場合があります。',
+                  zh: '⚠️ 标签扫描可能无法完全识别所有文字。',
+                  ko: '⚠️ 라벨 스캔은 일부 텍스트를 놓칠 수 있습니다.',
                 ),
                 style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
               ),
@@ -1031,9 +1033,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   t(
-                                    '⚠️ OCR results are for reference only.',
-                                    '⚠️ OCR読み取り結果は参考情報です。',
-                                    zh: '⚠️ OCR结果仅供参考。',
+                                    '⚠️ Label scan results are for reference only.',
+                                    '⚠️ ラベルスキャン結果は参考情報です。',
+                                    zh: '⚠️ 标签扫描结果仅供参考。',
+                                    ko: '⚠️ 라벨 스캔 결과는 참고 정보입니다.',
                                   ),
                                   style: TextStyle(
                                     fontSize: 11,
