@@ -152,16 +152,8 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
 
       if (!mounted) return;
 
-      // 見つからない場合：自動でOCRへ移行
-      _showSnackBar(
-        t(
-          'Not in database. Scanning package label...',
-          'データベースにありません。ラベルをスキャンします...',
-          zh: '数据库中未找到，正在扫描包装标签...',
-          ko: '데이터베이스에 없습니다. 라벨을 스캔합니다...',
-        ),
-      );
-      await _scanWithOcr(janCode);
+      // 見つからない場合：丁寧な説明シートを経由してOCRへ
+      await _showNotInDbSheet(janCode);
     } on TimeoutException {
       _showSnackBar(
         t('Connection timeout. Please check your network.', '通信がタイムアウトしました。',
@@ -204,7 +196,162 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     } catch (_) {} // 重複・RLSエラーは無視（ベストエフォート）
   }
 
-  Future<void> _scanWithOcr(String janCode) async {
+  Future<void> _showNotInDbSheet(String janCode) async {
+    if (!mounted) return;
+    final proceed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          24, 16, 24,
+          MediaQuery.of(ctx).padding.bottom + 28,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.search_off_outlined,
+                    color: Colors.blue.shade700, size: 26),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  t('Product not registered yet',
+                      'この商品はまだ未登録です',
+                      zh: '该商品尚未注册',
+                      ko: '아직 미등록 상품입니다'),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 16),
+            _notInDbPoint(
+              Icons.camera_alt_outlined,
+              Colors.teal,
+              t('Read the label directly',
+                  'ラベルから直接読み取ります',
+                  zh: '直接扫描成分标签',
+                  ko: '라벨에서 직접 읽어옵니다'),
+              t('Point your camera at the ingredient list on the back of the package. The text will be analysed automatically.',
+                  '商品裏面の原材料表示にカメラを向けると、テキストを自動で解析します。',
+                  zh: '将相机对准包装背面的成分表，文字将自动分析。',
+                  ko: '포장 뒷면의 성분표에 카메라를 향하면 텍스트를 자동으로 분석합니다.'),
+            ),
+            const SizedBox(height: 12),
+            _notInDbPoint(
+              Icons.warning_amber_outlined,
+              Colors.orange,
+              t('Results are estimates',
+                  '結果はあくまで推定です',
+                  zh: '结果仅为参考估算',
+                  ko: '결과는 어디까지나 추정입니다'),
+              t('OCR can misread text. Always confirm allergens on the actual label before eating.',
+                  'OCRは誤読することがあります。お召し上がり前に必ず実際のラベルでアレルゲンをご確認ください。',
+                  zh: 'OCR可能误读文字，食用前请务必核对实际标签上的过敏原信息。',
+                  ko: 'OCR은 오독할 수 있습니다. 드시기 전에 반드시 실제 라벨에서 알레르겐을 확인하세요.'),
+            ),
+            const SizedBox(height: 12),
+            _notInDbPoint(
+              Icons.volunteer_activism_outlined,
+              Colors.green,
+              t('Your scan helps others',
+                  'あなたのスキャンが次の旅行者を助けます',
+                  zh: '您的扫描帮助其他旅行者',
+                  ko: '당신의 스캔이 다음 여행자를 돕습니다'),
+              t('After scanning, you can submit the result anonymously to grow our database.',
+                  'スキャン後、結果を匿名で送信してデータベースを育てることができます。',
+                  zh: '扫描后，您可以匿名提交结果，帮助我们扩充数据库。',
+                  ko: '스캔 후 결과를 익명으로 제출해 데이터베이스를 키울 수 있습니다.'),
+            ),
+            const SizedBox(height: 24),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(t('Skip', 'スキップ', zh: '跳过', ko: '건너뛰기')),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: Text(t('Scan Label', 'ラベルをスキャン',
+                      zh: '扫描标签', ko: '라벨 스캔')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+    if (proceed == true && mounted) {
+      await _scanWithOcr(janCode, skipGuide: true);
+    }
+  }
+
+  Widget _notInDbPoint(
+      IconData icon, Color color, String title, String body) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: color.withValues(alpha: 0.9))),
+              const SizedBox(height: 2),
+              Text(body,
+                  style: TextStyle(
+                      fontSize: 12, height: 1.5, color: Colors.grey.shade700)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _scanWithOcr(String janCode, {bool skipGuide = false}) async {
     if (!mounted) return;
 
     if (!await canRunOcr()) {
@@ -213,8 +360,10 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
     }
 
     if (!mounted) return;
-    final confirmed = await showOcrGuideDialog(context);
-    if (!confirmed || !mounted) return;
+    if (!skipGuide) {
+      final confirmed = await showOcrGuideDialog(context);
+      if (!confirmed || !mounted) return;
+    }
 
     final picker = ImagePicker();
     final photo = await picker.pickImage(

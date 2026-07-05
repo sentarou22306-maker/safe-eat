@@ -49,67 +49,172 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
         bool analyticsConsent = false;
+        bool disclaimerChecked = false;
         return StatefulBuilder(
-          builder: (ctx, setSheetState) => Padding(
+          builder: (ctx, setSheetState) => SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               24,
               16,
               24,
-              MediaQuery.of(ctx).padding.bottom + 32,
+              MediaQuery.of(ctx).viewInsets.bottom +
+                  MediaQuery.of(ctx).padding.bottom +
+                  24,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                Icon(
-                  Icons.shield_outlined,
-                  size: 48,
-                  color: Colors.grey.shade500,
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.amber.shade300, width: 2),
+                    ),
+                    child: Icon(Icons.warning_amber_rounded,
+                        size: 40, color: Colors.amber.shade700),
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  t('Important Notice', '重要なご注意', zh: '重要提示', ko: '중요 안내'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 14),
+                Center(
+                  child: Text(
+                    t('Important Notice', '重要なご注意', zh: '重要提示', ko: '중요 안내'),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Colors.amber.shade50,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade200),
                   ),
-                  child: Text(
-                    t(
-                      'The allergen information provided by this app is for reference only and may not be 100% accurate or up to date.\n\nAlways check the actual product packaging before consumption. Do not rely solely on this app for severe or life-threatening allergies.',
-                      'このアプリが提供するアレルゲン情報は参考用であり、正確性・最新性を保証しません。\n\nお召し上がり前に必ず商品パッケージの表示をご確認ください。重篤なアレルギーをお持ちの方は、このアプリのみに依存しないでください。',
-                      zh: '本应用提供的过敏原信息仅供参考，不保证100%准确或最新。\n\n食用前请务必确认实际商品包装上的标注。严重过敏人群请勿仅依赖本应用。',
-                      ko: '이 앱이 제공하는 알레르겐 정보는 참고용이며 100% 정확하거나 최신임을 보장하지 않습니다.\n\n드시기 전에 반드시 실제 상품 포장의 표시를 확인하세요. 중증 알레르기가 있으신 분은 이 앱에만 의존하지 마세요.',
-                    ),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      height: 1.7,
-                      color: Colors.black87,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    children: [
+                      _disclaimerPoint(
+                        Icons.search_outlined,
+                        t(
+                          'Results are for reference only.',
+                          '結果は参考情報です。',
+                          zh: '结果仅供参考。',
+                          ko: '결과는 참고 정보입니다。',
+                        ),
+                        t(
+                          'Allergen data may be incomplete or outdated. Always verify with the actual product label.',
+                          'アレルゲンデータが不完全・古い場合があります。必ず実際の商品パッケージで確認してください。',
+                          zh: '过敏原数据可能不完整或已过时，请务必核对实际商品标签。',
+                          ko: '알레르겐 데이터가 불완전하거나 오래되었을 수 있습니다. 반드시 실제 상품 라벨로 확인하세요。',
+                        ),
+                      ),
+                      const Divider(height: 20),
+                      _disclaimerPoint(
+                        Icons.camera_alt_outlined,
+                        t(
+                          'Label scans can make mistakes.',
+                          'ラベルスキャンには誤読があります。',
+                          zh: '标签扫描可能出现误读。',
+                          ko: '라벨 스캔은 오독이 생길 수 있습니다。',
+                        ),
+                        t(
+                          'Camera OCR may fail on small text, poor lighting, or unusual fonts. The result is not a guarantee.',
+                          '小さい文字・暗い環境・特殊フォントでは正確に読み取れないことがあります。結果は保証ではありません。',
+                          zh: '小字、光线不足或特殊字体可能导致读取失败，结果不作任何保证。',
+                          ko: '작은 글씨, 어두운 환경, 특수 폰트에서는 정확하게 읽지 못할 수 있습니다. 결과는 보증이 아닙니다。',
+                        ),
+                      ),
+                      const Divider(height: 20),
+                      _disclaimerPoint(
+                        Icons.personal_injury_outlined,
+                        t(
+                          'Severe allergies: always ask staff.',
+                          '重篤なアレルギーは必ず店員に確認を。',
+                          zh: '严重过敏者：请务必询问工作人员。',
+                          ko: '중증 알레르기: 반드시 직원에게 확인하세요。',
+                        ),
+                        t(
+                          'If a reaction could be life-threatening, do not rely on this app alone. Ask a store employee to check the label for you.',
+                          'アナフィラキシーなど重篤な反応のリスクがある方は、このアプリのみに頼らず、店員に直接ラベルを確認してもらってください。',
+                          zh: '如果过敏反应可能危及生命，请不要仅依赖本应用，务必请工作人员帮您核对标签。',
+                          ko: '아나필락시스 등 중증 반응 위험이 있는 분은 이 앱에만 의존하지 말고 직원에게 라벨 확인을 요청하세요。',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
+                // 必須チェックボックス
+                GestureDetector(
+                  onTap: () =>
+                      setSheetState(() => disclaimerChecked = !disclaimerChecked),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: disclaimerChecked
+                          ? Colors.green.shade50
+                          : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: disclaimerChecked
+                            ? Colors.green.shade400
+                            : Colors.grey.shade300,
+                        width: disclaimerChecked ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          disclaimerChecked
+                              ? Icons.check_box_rounded
+                              : Icons.check_box_outline_blank_rounded,
+                          color: disclaimerChecked
+                              ? Colors.green.shade600
+                              : Colors.grey.shade400,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            t(
+                              'I understand this app is for reference only, and I will always check the actual product label.',
+                              'このアプリは参考用であり、実際のラベルを必ず確認することを理解しました。',
+                              zh: '我理解本应用仅供参考，并将始终核对实际商品标签。',
+                              ko: '이 앱은 참고용이며, 반드시 실제 라벨을 확인할 것을 이해했습니다。',
+                            ),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: disclaimerChecked
+                                  ? Colors.green.shade800
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 // Analytics consent toggle (opt-in, default off)
                 Container(
                   decoration: BoxDecoration(
@@ -118,7 +223,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   child: SwitchListTile(
                     value: analyticsConsent,
-                    onChanged: (v) => setSheetState(() => analyticsConsent = v),
+                    onChanged: (v) =>
+                        setSheetState(() => analyticsConsent = v),
                     activeThumbColor: Colors.green,
                     title: Text(
                       t(
@@ -128,9 +234,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ko: '익명 스캔 통계 공유',
                       ),
                       style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                       t(
@@ -148,21 +252,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx, analyticsConsent),
+                    onPressed: disclaimerChecked
+                        ? () => Navigator.pop(ctx, analyticsConsent)
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: Text(
-                      t('I Understand — Get Started 🚀', '理解しました — 始める 🚀',
-                          zh: '我已了解 — 开始使用 🚀', ko: '이해했습니다 — 시작하기 🚀'),
+                      t('Get Started 🚀', '始める 🚀',
+                          zh: '开始使用 🚀', ko: '시작하기 🚀'),
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -173,6 +278,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       },
     );
     if (confirmed != null) _finish(analyticsConsent: confirmed);
+  }
+
+  Widget _disclaimerPoint(IconData icon, String title, String body) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Colors.amber.shade700),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Colors.amber.shade900)),
+              const SizedBox(height: 3),
+              Text(body,
+                  style: TextStyle(
+                      fontSize: 12,
+                      height: 1.5,
+                      color: Colors.amber.shade800)),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _finish({bool analyticsConsent = false}) async {
