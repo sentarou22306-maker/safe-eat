@@ -21,6 +21,20 @@ class _AdminScreenState extends State<AdminScreen>
   final _pinController = TextEditingController();
   String _pinError = '';
 
+  // service_role キーを使った特権クライアント（RLS をバイパスして UPDATE/DELETE 可能）
+  SupabaseClient? _adminClient;
+
+  SupabaseClient get _db {
+    if (_adminClient != null) return _adminClient!;
+    final serviceKey = dotenv.env['SUPABASE_SERVICE_ROLE_KEY'] ?? '';
+    if (serviceKey.isEmpty) return Supabase.instance.client;
+    _adminClient = SupabaseClient(
+      dotenv.env['SUPABASE_URL'] ?? 'https://nzzenffzsohmbnoscfvx.supabase.co',
+      serviceKey,
+    );
+    return _adminClient!;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +43,7 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   void dispose() {
+    _adminClient?.dispose();
     _tabs.dispose();
     _pinController.dispose();
     super.dispose();
@@ -55,12 +70,12 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _loadPending() async {
     setState(() => _loading = true);
     try {
-      final products = await Supabase.instance.client
+      final products = await _db
           .from('products')
           .select()
           .eq('is_approved', false)
           .order('jan_code');
-      final corrections = await Supabase.instance.client
+      final corrections = await _db
           .from('allergen_corrections')
           .select()
           .eq('is_approved', false)
@@ -88,7 +103,7 @@ class _AdminScreenState extends State<AdminScreen>
 
   Future<void> _approveProduct(String janCode) async {
     try {
-      await Supabase.instance.client
+      await _db
           .from('products')
           .update({'is_approved': true}).eq('jan_code', janCode);
       setState(() =>
@@ -102,7 +117,7 @@ class _AdminScreenState extends State<AdminScreen>
     final ok = await _confirmDelete(context);
     if (!ok) return;
     try {
-      await Supabase.instance.client
+      await _db
           .from('products')
           .delete()
           .eq('jan_code', janCode)
@@ -116,7 +131,7 @@ class _AdminScreenState extends State<AdminScreen>
 
   Future<void> _approveCorrection(String janCode) async {
     try {
-      await Supabase.instance.client
+      await _db
           .from('allergen_corrections')
           .update({
             'is_approved': true,
@@ -134,7 +149,7 @@ class _AdminScreenState extends State<AdminScreen>
     final ok = await _confirmDelete(context);
     if (!ok) return;
     try {
-      await Supabase.instance.client
+      await _db
           .from('allergen_corrections')
           .delete()
           .eq('jan_code', janCode);
