@@ -76,11 +76,10 @@ const List<String> crossContaminationPhrases = [
 ];
 
 // ---------------------------------------------------------
-// 🌟 司令塔0：言語設定 (NEW!)
+// Language setting
 // ---------------------------------------------------------
-final ValueNotifier<String> appLanguage = ValueNotifier('en'); // 初期値は英語
+final ValueNotifier<String> appLanguage = ValueNotifier('en');
 
-// 🪄 魔法の翻訳ヘルパー関数
 String t(String en, String ja, {String? zh, String? ko}) {
   return switch (appLanguage.value) {
     'ja' => ja,
@@ -91,7 +90,7 @@ String t(String en, String ja, {String? zh, String? ko}) {
 }
 
 // ---------------------------------------------------------
-// 🌟 司令塔1：デザイン（テーマカラーと文字サイズ）
+// Theme settings
 // ---------------------------------------------------------
 final ValueNotifier<double> appTextScale = ValueNotifier(1.0);
 final ValueNotifier<Color> appThemeColor = ValueNotifier(Colors.green);
@@ -190,7 +189,7 @@ Future<void> removeCustomAllergen(String name) async {
 }
 
 // ---------------------------------------------------------
-// 🌟 司令塔2：履歴データ
+// Scan history
 // ---------------------------------------------------------
 final ValueNotifier<List<Map<String, dynamic>>> globalHistory = ValueNotifier(
   [],

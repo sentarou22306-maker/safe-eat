@@ -168,7 +168,6 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 ここに言語を監視するカメラを追加！
     return ValueListenableBuilder<String>(
       valueListenable: appLanguage,
       builder: (context, lang, _) {

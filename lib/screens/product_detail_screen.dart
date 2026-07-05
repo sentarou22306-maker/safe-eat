@@ -12,7 +12,6 @@ import '../services/allergen_detector.dart';
 import '../services/dietary_detector.dart';
 import '../services/rate_limit_service.dart';
 
-// 🌟変更：StatefulWidgetに進化させました！
 class ProductDetailScreen extends StatefulWidget {
   final Map<String, dynamic> product;
 
