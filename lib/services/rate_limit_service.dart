@@ -8,7 +8,7 @@ Future<int> getDailyOcrLimit() async {
       (prefs.getString('profile_country') ?? '').trim().isNotEmpty;
   final hasConsent = prefs.getBool('analytics_consent') ?? false;
 
-  int limit = 5;
+  int limit = 10;
   if (hasAge) limit = 10;
   if (hasAge && hasGender) limit = 18;
   if (hasAge && hasGender && hasCountry) limit = 30;

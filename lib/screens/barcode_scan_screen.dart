@@ -88,7 +88,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
       if (correctionRow != null) {
         final productData = <String, dynamic>{
           'janCode': janCode,
-          'name_jp': 'JAN: $janCode',
+          'name_jp': t('Product name unknown', '商品名未登録', zh: '商品名未知', ko: '상품명 미등록'),
           'name_en': '',
           'image_front': '',
           'ingredients': List<String>.from(correctionRow['allergens'] ?? []),
@@ -129,6 +129,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
             'image': p['image_url']?.toString() ?? '',
             'ingredients': correctedAllergens ??
                 (cleanIngredients.isNotEmpty ? [cleanIngredients] : []),
+            '_ingredientText': rawIngredients,
             '_source': 'ofa',
             if (_scanMode == ScanMode.accurate) '_autoVerify': true,
           };

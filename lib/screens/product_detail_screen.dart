@@ -935,13 +935,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   String _getIngredientText() {
-    final ocrText = (_ocrResult?.ingredientText.isNotEmpty ?? false)
-        ? _ocrResult!.ingredientText
-        : widget.product['_ocrIngredientText']?.toString() ?? '';
-    final fallback = (widget.product['ingredients'] as List? ?? [])
+    // Priority: 1) OCR scan text, 2) raw OFA ingredient text, 3) ingredient/allergen tag list
+    if (_ocrResult?.ingredientText.isNotEmpty ?? false) {
+      return _ocrResult!.ingredientText;
+    }
+    final stored = widget.product['_ocrIngredientText']?.toString() ?? '';
+    if (stored.isNotEmpty) return stored;
+    final ofaRaw = widget.product['_ingredientText']?.toString() ?? '';
+    if (ofaRaw.isNotEmpty) return ofaRaw;
+    return (widget.product['ingredients'] as List? ?? [])
         .map((e) => e.toString())
         .join(' ');
-    return ocrText.isNotEmpty ? ocrText : fallback;
   }
 
   Widget _buildDietaryStatusRow(DietaryCheckResult result) {

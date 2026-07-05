@@ -25,7 +25,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   String? _ageRange;
   String? _gender;
   final _countryController = TextEditingController();
-  int _ocrLimit = 5;
+  int _ocrLimit = 10;
+  int _ocrRemaining = -1;
 
   static const _mandatoryAllergens = [
     '卵', '乳成分', '小麦', 'そば', '落花生', 'えび', 'かに', 'くるみ',
@@ -55,6 +56,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       getDailyOcrLimit().then((limit) {
         if (mounted) setState(() => _ocrLimit = limit);
       });
+      getRemainingOcrScans().then((r) {
+        if (mounted) setState(() => _ocrRemaining = r);
+      });
     });
   }
 
@@ -70,8 +74,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _saveProfile() async {
     final oldLimit = _ocrLimit;
     final limit = await getDailyOcrLimit();
+    final remaining = await getRemainingOcrScans();
     if (!mounted) return;
-    setState(() => _ocrLimit = limit);
+    setState(() { _ocrLimit = limit; _ocrRemaining = remaining; });
     if (limit > oldLimit) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -95,25 +100,123 @@ class _SettingsScreenState extends State<SettingsScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ─ 食事制限 ────────────────────────────────────────────
-        _sectionHeader(
-          t('Dietary Preferences', '食事制限', zh: '饮食偏好', ko: '식이 선호'),
-          Icons.restaurant_outlined,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          t(
-            'Select a preset, then remove categories you\'re OK with.',
-            'プリセットを選択後、食べられるカテゴリをタップして除外できます。',
-            zh: '选择预设，然后点击您可以接受的类别以排除它。',
-            ko: '프리셋을 선택한 뒤, 먹을 수 있는 카테고리를 탭하여 제외하세요.',
+        // ─ スキャン残量バナー ────────────────────────────────────
+        if (_ocrRemaining >= 0)
+          GestureDetector(
+            onTap: () => _tabController.animateTo(1),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: _ocrRemaining <= 2
+                    ? Colors.orange.shade50
+                    : Colors.teal.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _ocrRemaining <= 2
+                      ? Colors.orange.shade300
+                      : Colors.teal.shade200,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.document_scanner_outlined,
+                    size: 18,
+                    color: _ocrRemaining <= 2
+                        ? Colors.orange.shade700
+                        : Colors.teal.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(
+                          text: t(
+                            'Label scans remaining today: ',
+                            '本日のラベルスキャン残り: ',
+                            zh: '今日剩余标签扫描次数: ',
+                            ko: '오늘 라벨 스캔 남은 횟수: ',
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _ocrRemaining <= 2
+                                ? Colors.orange.shade800
+                                : Colors.teal.shade800,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '$_ocrRemaining / $_ocrLimit',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: _ocrRemaining <= 2
+                                ? Colors.orange.shade800
+                                : Colors.teal.shade800,
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 13,
+                    color: _ocrRemaining <= 2
+                        ? Colors.orange.shade400
+                        : Colors.teal.shade400,
+                  ),
+                ],
+              ),
+            ),
           ),
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+
+        // ─ 食事制限 ────────────────────────────────────────────
+        Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            initiallyExpanded: activeDietaryPresets.value.isNotEmpty,
+            leading: Icon(Icons.restaurant_outlined,
+                color: appThemeColor.value, size: 22),
+            title: Text(
+              t('Dietary Preferences', '食事制限', zh: '饮食偏好', ko: '식이 선호'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            subtitle: ValueListenableBuilder<Set<String>>(
+              valueListenable: activeDietaryPresets,
+              builder: (context, active, _) => active.isEmpty
+                  ? Text(
+                      t('None set', '未設定', zh: '未设置', ko: '미설정'),
+                      style: TextStyle(
+                          fontSize: 11, color: Colors.grey.shade500),
+                    )
+                  : Text(
+                      active
+                          .map((k) => kDietaryPresets[k]?.emoji ?? '')
+                          .join(' '),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+            ),
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                t(
+                  'Select a preset, then remove categories you\'re OK with.',
+                  'プリセットを選択後、食べられるカテゴリをタップして除外できます。',
+                  zh: '选择预设，然后点击您可以接受的类别以排除它。',
+                  ko: '프리셋을 선택한 뒤, 먹을 수 있는 카테고리를 탭하여 제외하세요。',
+                ),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              _buildPresetChips(),
+              _buildActivePresetCustomization(),
+              _buildCustomDietarySection(),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        _buildPresetChips(),
-        _buildActivePresetCustomization(),
-        _buildCustomDietarySection(),
 
         const Divider(height: 40, thickness: 1),
 
