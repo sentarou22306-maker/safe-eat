@@ -1,4 +1,6 @@
 import 'dart:async' show unawaited;
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,7 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   OcrResult? _ocrResult;
+  Uint8List? _labelImageBytes;
   bool _isOcrRunning = false;
   bool _showRawText = false;
   bool _hasContributed = false;
@@ -41,13 +44,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() => _isOcrRunning = true);
     try {
       OcrResult result;
+      Uint8List capturedBytes;
       if (kIsWeb) {
-        final bytes = await photo.readAsBytes();
-        result = await extractAllergensFromImageBytes(bytes);
+        capturedBytes = await photo.readAsBytes();
+        result = await extractAllergensFromImageBytes(capturedBytes);
       } else {
         result = await extractAllergensFromImage(photo.path);
+        capturedBytes = await File(photo.path).readAsBytes();
       }
-      if (mounted) setState(() => _ocrResult = result);
+      if (mounted) {
+        setState(() {
+          _ocrResult = result;
+          _labelImageBytes = capturedBytes;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,6 +73,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+  // product data から渡された画像バイトを拾う（バーコードスキャン経由の場合）
+  Uint8List? get _effectiveLabelBytes {
+    if (_labelImageBytes != null) return _labelImageBytes;
+    final raw = widget.product['_ocrImageBytes'];
+    return raw is Uint8List ? raw : null;
+  }
+
   Future<void> _submitContribution() async {
     final janCode = widget.product['janCode']?.toString() ?? '';
     final allergens = (widget.product['ingredients'] as List?)
@@ -74,6 +91,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     setState(() => _isSubmittingContribution = true);
     try {
+      // ラベル写真を Supabase Storage へアップロード（失敗しても投稿は続行）
+      String? imageUrl;
+      final imgBytes = _effectiveLabelBytes;
+      if (imgBytes != null) {
+        try {
+          final fileName =
+              'corrections/${janCode}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          await Supabase.instance.client.storage
+              .from('label_images')
+              .uploadBinary(
+                fileName,
+                imgBytes,
+                fileOptions: const FileOptions(contentType: 'image/jpeg'),
+              );
+          imageUrl = Supabase.instance.client.storage
+              .from('label_images')
+              .getPublicUrl(fileName);
+        } catch (_) {
+          // バケット未作成など — 写真なしで続行
+        }
+      }
+
       await Supabase.instance.client.from('allergen_corrections').insert({
         'jan_code': janCode,
         'allergens': allergens,
@@ -81,9 +120,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         'submitted_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
         'is_approved': false,
+        'image_url': ?imageUrl,
       });
       if (mounted) setState(() => _hasContributed = true);
-      unawaited(refundOcrUse()); // 貢献してくれたらスキャン回数を返金
+      unawaited(refundOcrUse());
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -186,6 +226,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ko: '✦ 기여하면 이 스캔은 일일 횟수에 포함되지 않습니다.'),
             style: TextStyle(fontSize: 11, color: Colors.teal.shade600, fontStyle: FontStyle.italic),
           ),
+          // ラベル写真プレビュー
+          if (_effectiveLabelBytes != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.memory(
+                    _effectiveLabelBytes!,
+                    height: 64,
+                    width: 64,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Icon(Icons.photo_camera_outlined,
+                            size: 14, color: Colors.teal.shade600),
+                        const SizedBox(width: 4),
+                        Text(
+                          t('Label photo included',
+                              'ラベル写真も送信されます',
+                              zh: '将附上标签照片',
+                              ko: '라벨 사진도 함께 전송됩니다'),
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal.shade700),
+                        ),
+                      ]),
+                      const SizedBox(height: 2),
+                      Text(
+                        t('Reviewers can verify allergens against the actual label.',
+                            '審査者が実際のラベルと照合して確認できます。',
+                            zh: '审核人员可对照实际标签核实过敏原信息。',
+                            ko: '검토자가 실제 라벨과 대조해 확인할 수 있습니다.'),
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.teal.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 10),
           ElevatedButton.icon(
             onPressed: _isSubmittingContribution ? null : _submitContribution,

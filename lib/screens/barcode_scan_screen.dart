@@ -1,6 +1,7 @@
 import 'dart:async' show Future, TimeoutException, unawaited;
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -376,11 +377,13 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         zh: '正在从图像中读取文字...', ko: '이미지에서 텍스트를 읽는 중...'));
     try {
       OcrResult result;
+      Uint8List imageBytes;
       if (kIsWeb) {
-        final bytes = await photo.readAsBytes();
-        result = await extractAllergensFromImageBytes(bytes);
+        imageBytes = await photo.readAsBytes();
+        result = await extractAllergensFromImageBytes(imageBytes);
       } else {
         result = await extractAllergensFromImage(photo.path);
+        imageBytes = await File(photo.path).readAsBytes();
       }
       if (!mounted) return;
       unawaited(recordOcrUse());
@@ -394,6 +397,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         '_source': 'ocr',
         '_ocrRawText': result.rawText,
         '_ocrIngredientText': result.ingredientText,
+        '_ocrImageBytes': imageBytes,
       });
     } catch (e) {
       if (mounted) {
