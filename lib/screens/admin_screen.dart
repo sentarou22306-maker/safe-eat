@@ -21,18 +21,19 @@ class _AdminScreenState extends State<AdminScreen>
   final _pinController = TextEditingController();
   String _pinError = '';
 
-  // service_role キーを使った特権クライアント（RLS をバイパスして UPDATE/DELETE 可能）
-  SupabaseClient? _adminClient;
+  String get _adminKey => dotenv.env['ADMIN_KEY'] ?? '';
 
-  SupabaseClient get _db {
-    if (_adminClient != null) return _adminClient!;
-    final serviceKey = dotenv.env['SUPABASE_SERVICE_ROLE_KEY'] ?? '';
-    if (serviceKey.isEmpty) return Supabase.instance.client;
-    _adminClient = SupabaseClient(
-      dotenv.env['SUPABASE_URL'] ?? 'https://nzzenffzsohmbnoscfvx.supabase.co',
-      serviceKey,
+  Future<Map<String, dynamic>> _callAdminFunction(Map<String, dynamic> body) async {
+    final response = await Supabase.instance.client.functions.invoke(
+      'admin-action',
+      headers: {'x-admin-key': _adminKey},
+      body: body,
     );
-    return _adminClient!;
+    if (response.status != 200) {
+      final msg = (response.data as Map?)?['error'] ?? 'Unknown error';
+      throw Exception(msg);
+    }
+    return response.data as Map<String, dynamic>;
   }
 
   @override
@@ -43,19 +44,17 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   void dispose() {
-    _adminClient?.dispose();
     _tabs.dispose();
     _pinController.dispose();
     super.dispose();
   }
 
   void _tryAuth() {
-    final key = dotenv.env['ADMIN_KEY'] ?? '';
-    if (key.isEmpty) {
+    if (_adminKey.isEmpty) {
       setState(() => _pinError = 'ADMIN_KEY not set in .env');
       return;
     }
-    if (_pinController.text.trim() == key) {
+    if (_pinController.text.trim() == _adminKey) {
       setState(() {
         _authenticated = true;
         _pinError = '';
@@ -70,27 +69,18 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _loadPending() async {
     setState(() => _loading = true);
     try {
-      final products = await _db
-          .from('products')
-          .select()
-          .eq('is_approved', false)
-          .order('jan_code');
-      final corrections = await _db
-          .from('allergen_corrections')
-          .select()
-          .eq('is_approved', false)
-          .order('submitted_at', ascending: false);
+      final data = await _callAdminFunction({'action': 'load-pending'});
       if (mounted) {
         setState(() {
-          _pendingProducts = List<Map<String, dynamic>>.from(products);
-          _pendingCorrections = List<Map<String, dynamic>>.from(corrections);
+          _pendingProducts = List<Map<String, dynamic>>.from(data['products'] ?? []);
+          _pendingCorrections = List<Map<String, dynamic>>.from(data['corrections'] ?? []);
         });
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Load error: $e\n(Check Supabase RLS policies)'),
+            content: Text('Load error: $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 6),
           ),
@@ -103,11 +93,8 @@ class _AdminScreenState extends State<AdminScreen>
 
   Future<void> _approveProduct(String janCode) async {
     try {
-      await _db
-          .from('products')
-          .update({'is_approved': true}).eq('jan_code', janCode);
-      setState(() =>
-          _pendingProducts.removeWhere((p) => p['jan_code'] == janCode));
+      await _callAdminFunction({'action': 'approve', 'table': 'products', 'janCode': janCode});
+      setState(() => _pendingProducts.removeWhere((p) => p['jan_code'] == janCode));
     } catch (e) {
       if (mounted) _showError(e.toString());
     }
@@ -117,13 +104,8 @@ class _AdminScreenState extends State<AdminScreen>
     final ok = await _confirmDelete(context);
     if (!ok) return;
     try {
-      await _db
-          .from('products')
-          .delete()
-          .eq('jan_code', janCode)
-          .eq('is_approved', false);
-      setState(() =>
-          _pendingProducts.removeWhere((p) => p['jan_code'] == janCode));
+      await _callAdminFunction({'action': 'delete', 'table': 'products', 'janCode': janCode});
+      setState(() => _pendingProducts.removeWhere((p) => p['jan_code'] == janCode));
     } catch (e) {
       if (mounted) _showError(e.toString());
     }
@@ -131,15 +113,8 @@ class _AdminScreenState extends State<AdminScreen>
 
   Future<void> _approveCorrection(String janCode) async {
     try {
-      await _db
-          .from('allergen_corrections')
-          .update({
-            'is_approved': true,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('jan_code', janCode);
-      setState(() =>
-          _pendingCorrections.removeWhere((c) => c['jan_code'] == janCode));
+      await _callAdminFunction({'action': 'approve', 'table': 'allergen_corrections', 'janCode': janCode});
+      setState(() => _pendingCorrections.removeWhere((c) => c['jan_code'] == janCode));
     } catch (e) {
       if (mounted) _showError(e.toString());
     }
@@ -149,12 +124,8 @@ class _AdminScreenState extends State<AdminScreen>
     final ok = await _confirmDelete(context);
     if (!ok) return;
     try {
-      await _db
-          .from('allergen_corrections')
-          .delete()
-          .eq('jan_code', janCode);
-      setState(() =>
-          _pendingCorrections.removeWhere((c) => c['jan_code'] == janCode));
+      await _callAdminFunction({'action': 'delete', 'table': 'allergen_corrections', 'janCode': janCode});
+      setState(() => _pendingCorrections.removeWhere((c) => c['jan_code'] == janCode));
     } catch (e) {
       if (mounted) _showError(e.toString());
     }

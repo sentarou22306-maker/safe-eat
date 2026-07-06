@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme_settings.dart';
 
 class OcrResult {
@@ -92,35 +91,16 @@ Future<OcrResult> extractAllergensFromImage(String imagePath) async {
   }
 }
 
-/// ウェブ専用：Google Cloud Vision API（日本語・英語対応）
+/// ウェブ専用：Supabase Edge Function 経由で Google Cloud Vision を呼び出す
 Future<OcrResult> extractAllergensFromImageBytes(Uint8List imageBytes) async {
-  final apiKey = dotenv.env['GOOGLE_VISION_API_KEY'] ?? '';
   final base64Image = base64Encode(imageBytes);
   try {
-    final response = await http
-        .post(
-          Uri.parse(
-            'https://vision.googleapis.com/v1/images:annotate?key=$apiKey',
-          ),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'requests': [
-              {
-                'image': {'content': base64Image},
-                'features': [
-                  {'type': 'DOCUMENT_TEXT_DETECTION'},
-                ],
-                'imageContext': {
-                  'languageHints': ['ja', 'en'],
-                },
-              },
-            ],
-          }),
-        )
-        .timeout(const Duration(seconds: 20));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final response = await Supabase.instance.client.functions.invoke(
+      'ocr',
+      body: {'imageBase64': base64Image},
+    );
+    if (response.status == 200) {
+      final data = response.data as Map<String, dynamic>;
       final responses = data['responses'] as List?;
       if (responses != null && responses.isNotEmpty) {
         final rawText =
