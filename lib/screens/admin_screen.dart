@@ -304,6 +304,7 @@ class _AdminScreenState extends State<AdminScreen>
     final janCode = row['jan_code']?.toString() ?? '';
     final nameJp = row['name_jp']?.toString() ?? '';
     final nameEn = row['name_en']?.toString() ?? '';
+    final imageUrl = row['image_url']?.toString() ?? '';
     final allergens = List<String>.from(row['allergens'] ?? []);
 
     return Card(
@@ -315,41 +316,49 @@ class _AdminScreenState extends State<AdminScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(6),
+                if (imageUrl.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(imageUrl,
+                        width: 64, height: 64, fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.image_not_supported, size: 40, color: Colors.grey)),
                   ),
-                  child: Text(
-                    janCode,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: 'monospace',
-                        color: Colors.blue.shade700),
+                  const SizedBox(width: 10),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(janCode,
+                              style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: Colors.blue.shade700)),
+                        ),
+                        const SizedBox(width: 6),
+                        Text('OFA auto-save', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                      ]),
+                      if (nameJp.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(nameJp, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      ],
+                      if (nameEn.isNotEmpty)
+                        Text(nameEn, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text('OFA auto-save',
-                      style: TextStyle(fontSize: 11, color: Colors.grey)),
                 ),
               ],
             ),
-            if (nameJp.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(nameJp,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14)),
-            ],
-            if (nameEn.isNotEmpty)
-              Text(nameEn,
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade600)),
-            if (allergens.isNotEmpty) ...[
-              const SizedBox(height: 8),
+            const SizedBox(height: 10),
+            // アレルゲン（なしの場合も明示）
+            if (allergens.isNotEmpty)
               Wrap(
                 spacing: 4,
                 runSpacing: 4,
@@ -357,28 +366,29 @@ class _AdminScreenState extends State<AdminScreen>
                   final info = allergenDictionary[a];
                   final emoji = info?['emoji'] ?? '⚠';
                   return Chip(
-                    label: Text('$emoji $a',
-                        style: const TextStyle(fontSize: 11)),
+                    label: Text('$emoji $a', style: const TextStyle(fontSize: 11)),
                     padding: EdgeInsets.zero,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     backgroundColor: Colors.orange.shade50,
                     side: BorderSide(color: Colors.orange.shade200),
                   );
                 }).toList(),
-              ),
-            ],
+              )
+            else
+              Row(children: [
+                Icon(Icons.check_circle_outline, size: 14, color: Colors.green.shade400),
+                const SizedBox(width: 4),
+                Text('No allergens detected', style: TextStyle(fontSize: 12, color: Colors.green.shade600)),
+              ]),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _deleteProduct(janCode),
-                    icon: const Icon(Icons.delete_outline,
-                        size: 16, color: Colors.red),
-                    label: const Text('Delete',
-                        style: TextStyle(color: Colors.red)),
-                    style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red)),
+                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    label: const Text('Delete', style: TextStyle(color: Colors.red)),
+                    style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -388,8 +398,7 @@ class _AdminScreenState extends State<AdminScreen>
                     icon: const Icon(Icons.check, size: 16),
                     label: const Text('Approve'),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white),
+                        backgroundColor: Colors.green, foregroundColor: Colors.white),
                   ),
                 ),
               ],
@@ -404,6 +413,7 @@ class _AdminScreenState extends State<AdminScreen>
     final janCode = row['jan_code']?.toString() ?? '';
     final allergens = List<String>.from(row['allergens'] ?? []);
     final note = row['note']?.toString() ?? '';
+    final imageUrl = row['image_url']?.toString() ?? '';
     final submittedAt = row['submitted_at']?.toString() ?? '';
     final dateStr = submittedAt.length >= 10 ? submittedAt.substring(0, 10) : submittedAt;
 
@@ -481,6 +491,20 @@ class _AdminScreenState extends State<AdminScreen>
                   style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            if (imageUrl.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  imageUrl,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      const SizedBox.shrink(),
                 ),
               ),
             ],

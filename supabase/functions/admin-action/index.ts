@@ -12,8 +12,8 @@ export default {
     }
 
     try {
-      const requestKey = req.headers.get('x-admin-key')
-      const envKey = Deno.env.get('ADMIN_KEY')
+      const requestKey = req.headers.get('x-admin-key')?.trim()
+      const envKey = Deno.env.get('ADMIN_KEY')?.trim()
       if (!requestKey || requestKey !== envKey) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,
