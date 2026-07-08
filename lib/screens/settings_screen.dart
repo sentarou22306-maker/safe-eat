@@ -1117,6 +1117,16 @@ class _SettingsScreenState extends State<SettingsScreen>
               const Icon(Icons.chevron_right, color: Colors.grey),
           onTap: () => context.push('/tos'),
         ),
+        const SizedBox(height: 32),
+        Center(
+          child: TextButton(
+            onPressed: () => context.push('/admin'),
+            child: Text(
+              'Admin',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+            ),
+          ),
+        ),
         const SizedBox(height: 80),
       ],
     );
