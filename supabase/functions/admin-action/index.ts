@@ -26,7 +26,8 @@ export default {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
       )
 
-      const { action, table, janCode } = await req.json()
+      const payload = await req.json()
+      const { action, table, janCode } = payload
 
       if (action === 'load-pending') {
         const { data: products, error: e1 } = await supabase
@@ -51,6 +52,11 @@ export default {
         const updateData: Record<string, unknown> = { is_approved: true }
         if (table === 'allergen_corrections') {
           updateData.updated_at = new Date().toISOString()
+        }
+        // 編集内容があればマージして一緒に保存
+        const { updates } = payload
+        if (updates && typeof updates === 'object') {
+          Object.assign(updateData, updates)
         }
         const { error } = await supabase
           .from(table)

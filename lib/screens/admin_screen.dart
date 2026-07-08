@@ -91,15 +91,6 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
-  Future<void> _approveProduct(String janCode) async {
-    try {
-      await _callAdminFunction({'action': 'approve', 'table': 'products', 'janCode': janCode});
-      setState(() => _pendingProducts.removeWhere((p) => p['jan_code'] == janCode));
-    } catch (e) {
-      if (mounted) _showError(e.toString());
-    }
-  }
-
   Future<void> _deleteProduct(String janCode) async {
     final ok = await _confirmDelete(context);
     if (!ok) return;
@@ -115,6 +106,112 @@ class _AdminScreenState extends State<AdminScreen>
     try {
       await _callAdminFunction({'action': 'approve', 'table': 'allergen_corrections', 'janCode': janCode});
       setState(() => _pendingCorrections.removeWhere((c) => c['jan_code'] == janCode));
+    } catch (e) {
+      if (mounted) _showError(e.toString());
+    }
+  }
+
+  Future<void> _editAndApproveProduct(Map<String, dynamic> row) async {
+    final janCode = row['jan_code']?.toString() ?? '';
+    final nameJpCtrl = TextEditingController(text: row['name_jp']?.toString() ?? '');
+    final nameEnCtrl = TextEditingController(text: row['name_en']?.toString() ?? '');
+    var selected = Set<String>.from(List<String>.from(row['allergens'] ?? []));
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Edit & Approve'),
+          content: SizedBox(
+            width: 520,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(janCode,
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontFamily: 'monospace')),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: nameJpCtrl,
+                    decoration: const InputDecoration(
+                      labelText: '商品名（日本語）',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: nameEnCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Product Name (EN)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Allergens',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: allergenDictionary.keys.map((jp) {
+                      final info = allergenDictionary[jp]!;
+                      final isSel = selected.contains(jp);
+                      return FilterChip(
+                        label: Text('${info['emoji']} $jp',
+                            style: const TextStyle(fontSize: 12)),
+                        selected: isSel,
+                        selectedColor: Colors.orange.shade100,
+                        checkmarkColor: Colors.orange.shade700,
+                        side: isSel
+                            ? BorderSide(color: Colors.orange.shade400)
+                            : BorderSide(color: Colors.grey.shade300),
+                        onSelected: (val) => setDialogState(() =>
+                            val ? selected.add(jp) : selected.remove(jp)),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(ctx, true),
+              icon: const Icon(Icons.check, size: 16),
+              label: const Text('Save & Approve'),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green, foregroundColor: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final nameJp = nameJpCtrl.text.trim();
+    final nameEn = nameEnCtrl.text.trim();
+    nameJpCtrl.dispose();
+    nameEnCtrl.dispose();
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _callAdminFunction({
+        'action': 'approve',
+        'table': 'products',
+        'janCode': janCode,
+        'updates': {
+          'name_jp': nameJp,
+          'name_en': nameEn,
+          'allergens': selected.toList(),
+        },
+      });
+      setState(() => _pendingProducts.removeWhere((p) => p['jan_code'] == janCode));
     } catch (e) {
       if (mounted) _showError(e.toString());
     }
@@ -394,9 +491,9 @@ class _AdminScreenState extends State<AdminScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _approveProduct(janCode),
-                    icon: const Icon(Icons.check, size: 16),
-                    label: const Text('Approve'),
+                    onPressed: () => _editAndApproveProduct(row),
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit & Approve'),
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green, foregroundColor: Colors.white),
                   ),
